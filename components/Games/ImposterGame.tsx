@@ -196,13 +196,13 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
 
   if (phase === 'ERROR') {
     return (
-      <div className="max-w-2xl mx-auto p-12 mt-20 bg-white rounded-xl shadow-2xl text-center border border-slate-200">
+      <div className="max-w-2xl mx-auto p-12 mt-20 bg-white rounded-xl shadow-lg text-center border border-slate-200">
         <AlertCircle size={64} className="mx-auto text-red-500 mb-6" />
         <h1 className="text-3xl font-bold text-slate-800 mb-4">Error: Game Data Not Ready</h1>
         <p className="text-slate-500 mb-8">No gamified content available for this survey. Please enable gamification in the Admin panel.</p>
         <Link 
           to="/" 
-          className="inline-block bg-slate-800 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-900 transition-all shadow-lg"
+          className="inline-block bg-slate-800 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-900 transition-all shadow-md"
         >
           Back to Dashboard
         </Link>
@@ -212,7 +212,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
 
   if (phase === 'SETUP') {
     return (
-      <div className="max-w-2xl mx-auto p-10 mt-12 bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 relative overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-700">
+      <div className="max-w-2xl mx-auto p-10 mt-12 bg-white rounded-[2.5rem] shadow-lg border border-slate-100 relative overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-700">
         <div className="absolute top-0 right-0 p-6 opacity-5">
            <Users size={120} className="text-imposter-900" />
         </div>
@@ -239,13 +239,13 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
                    className="flex-1 border-2 border-slate-100 rounded-2xl px-6 py-4 focus:border-imposter-500 outline-none bg-slate-50/50 focus:bg-white text-slate-900 font-bold transition-all placeholder:text-slate-300"
                    placeholder="Player name..."
                 />
-                <button onClick={addPlayer} className="btn-base bg-imposter-600 text-white hover:bg-imposter-700 shadow-lg shadow-imposter-100 border-none">
+                <button onClick={addPlayer} className="btn-base bg-imposter-600 text-white hover:bg-imposter-700 shadow-md border-none">
                   <UserPlus size={20} />
                 </button>
               </div>
            </div>
            
-           <div className="flex flex-wrap gap-3 mb-10 min-h-[120px] bg-imposter-50/50 p-6 rounded-[2rem] border-2 border-imposter-100 shadow-inner items-center content-center">
+           <div className="flex flex-wrap gap-3 mb-10 min-h-[120px] bg-imposter-50/50 p-6 rounded-[2rem] border-2 border-imposter-100 items-center content-center">
               {players.length === 0 && (
                 <div className="flex flex-col items-center justify-center w-full text-imposter-300 gap-2">
                   <Users size={32} className="opacity-20" />
@@ -253,7 +253,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
                 </div>
               )}
               {players.map(p => (
-                <div key={p.id} className="bg-white pl-5 pr-2 py-2 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-3 animate-in fade-in zoom-in duration-300 hover:border-imposter-500 transition-colors">
+                <div key={p.id} className="bg-white pl-5 pr-2 py-2 rounded-2xl border border-slate-200 flex items-center gap-3 animate-in fade-in zoom-in duration-300 hover:border-imposter-500 transition-colors">
                   <span className="font-black text-slate-900 text-sm tracking-tight">{p.name}</span>
                   <button 
                     onClick={() => removePlayer(p.id)} 
@@ -268,7 +268,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
            <button 
              onClick={startGame}
              disabled={players.length < 3 || !gameScenario}
-             className="btn-hero w-full bg-slate-900 text-white hover:bg-black flex items-center justify-center gap-3 shadow-2xl shadow-slate-200 border-none"
+             className="btn-hero w-full bg-slate-900 text-white hover:bg-black flex items-center justify-center gap-3 shadow-lg border-none"
            >
              <Play fill="currentColor" size={20} /> START GAME
            </button>
@@ -280,7 +280,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
   if (phase === 'ROLE_REVEAL') {
     const player = players[currentPlayerIndex];
     return (
-      <div className="max-w-md mx-auto mt-20 p-8 bg-white rounded-xl shadow-2xl text-center border border-slate-100">
+      <div className="max-w-md mx-auto mt-20 p-8 bg-white rounded-xl shadow-lg text-center border border-slate-100">
          <div className="mb-8">
             
          </div>
@@ -292,7 +292,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
              <p className="text-slate-500 mb-8">Tap below to reveal your secret identity. Make sure no one else is looking.</p>
              <button 
                onClick={() => setShowRole(true)}
-               className="btn-hero w-full bg-slate-800 text-white hover:bg-slate-900 shadow-lg"
+               className="btn-hero w-full bg-slate-800 text-white hover:bg-slate-900 shadow-md"
              >
                Reveal Identity
              </button>
@@ -309,14 +309,14 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
                 <div className="bg-imposter-50 p-6 rounded-2xl border border-imposter-100 mb-6">
                    <h1 className="text-3xl font-bold text-imposter-600 mb-2 uppercase tracking-tighter">Crewmate</h1>
                    <p className="text-imposter-800 font-bold mb-2">Secret Word:</p>
-                   <div className="bg-white px-4 py-2 rounded-lg font-mono text-2xl border border-imposter-200 shadow-inner text-imposter-900">
+                   <div className="bg-white px-4 py-2 rounded-lg font-mono text-2xl border border-imposter-200 text-imposter-900">
                      {gameScenario?.secretWord}
                    </div>
                 </div>
              )}
              <button 
                onClick={handleNextReveal}
-               className="btn-hero w-full bg-imposter-600 text-white hover:bg-imposter-700 shadow-lg"
+               className="btn-hero w-full bg-imposter-600 text-white hover:bg-imposter-700 shadow-md"
              >
                Got it
              </button>
@@ -332,7 +332,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
     
     return (
       <div className="max-w-2xl mx-auto p-6 mt-10">
-        <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-slate-200">
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
            {/* Header */}
            <div className="bg-slate-900 text-white p-6 flex justify-between items-center">
               <div className="flex items-center gap-3">
@@ -373,7 +373,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
                                         <div className={`
                                             w-12 h-12 rounded-full flex items-center justify-center border-4 transition-all duration-200 bg-white
                                             ${isSelected 
-                                                ? 'border-imposter-500 text-imposter-600 shadow-lg scale-110 ring-4 ring-imposter-100' 
+                                                ? 'border-imposter-500 text-imposter-600 shadow-md scale-110 ring-4 ring-imposter-100' 
                                                 : 'border-slate-200 text-slate-500 group-hover:border-imposter-200'
                                             }
                                         `}>
@@ -391,7 +391,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
                     <button 
                         onClick={() => submitAnswer(answerText)}
                         disabled={!answerText}
-                        className="btn-hero w-full bg-imposter-600 text-white hover:bg-imposter-700 shadow-lg flex items-center justify-center gap-2"
+                        className="btn-hero w-full bg-imposter-600 text-white hover:bg-imposter-700 shadow-md flex items-center justify-center gap-2"
                     >
                         Confirm Selection <Send size={18} />
                     </button>
@@ -450,7 +450,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
         <h1 className="text-3xl font-bold text-slate-800 mb-2">Round Recap</h1>
         <p className="text-slate-500 mb-8">Discuss the answers. Who seems suspicious?</p>
 
-        <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-8 mb-8">
+        <div className="bg-white rounded-xl shadow-md border border-slate-200 p-8 mb-8">
            <h2 className="text-xl font-bold text-imposter-800 mb-6 border-b border-slate-100 pb-4 italic">"{q.text}"</h2>
            
            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -472,7 +472,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
 
         <button 
           onClick={handleNextRound}
-          className="btn-hero w-full bg-slate-900 text-white hover:bg-black shadow-lg flex items-center justify-center gap-2"
+          className="btn-hero w-full bg-slate-900 text-white hover:bg-black shadow-md flex items-center justify-center gap-2"
         >
           {currentQuestionIdx < gameScenario!.questions.length - 1 ? 'Next Question' : 'Proceed to Voting'} <Play size={20} fill="currentColor"/>
         </button>
@@ -488,7 +488,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
 
          <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12">
             {players.map(p => (
-               <div key={p.id} className="bg-white p-6 rounded-xl shadow-md border border-slate-200 opacity-100 transform transition-transform hover:scale-105">
+               <div key={p.id} className="bg-white p-6 rounded-xl border border-slate-200 opacity-100 transform transition-transform hover:scale-105">
                   <div className="w-20 h-20 bg-slate-100 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl">
                      👤
                   </div>
@@ -499,7 +499,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
 
          <button 
            onClick={() => handleVote()}
-           className="btn-hero bg-red-600 text-white px-12 hover:bg-red-700 shadow-xl"
+           className="btn-hero bg-red-600 text-white px-12 hover:bg-red-700 shadow-lg"
          >
            Reveal Truth
          </button>
@@ -510,7 +510,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
   if (phase === 'GAME_OVER') {
     const imposter = players.find(p => p.isImposter);
     return (
-      <div className="max-w-2xl mx-auto p-8 text-center mt-10 bg-white rounded-xl shadow-2xl border border-slate-100">
+      <div className="max-w-2xl mx-auto p-8 text-center mt-10 bg-white rounded-xl shadow-lg border border-slate-100">
          <div className="mb-8 animate-in zoom-in duration-500">
             <p className="text-slate-500 uppercase font-bold tracking-widest mb-2 text-sm">The Imposter Was</p>
             <h1 className="text-5xl font-bold text-slate-900 mb-4">{imposter?.name}</h1>

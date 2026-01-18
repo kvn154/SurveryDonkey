@@ -36,12 +36,12 @@ export const AdminDashboard: React.FC<Props> = ({
        <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
              <div className="flex justify-between items-center h-16">
-                <div className="flex items-center gap-3">
-                   <div className="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center font-bold text-white shadow-lg shadow-brand-200">
-                      D
-                   </div>
-                   <span className="font-bold text-xl tracking-tight text-slate-900">SurveyDonkey</span>
-                </div>
+                 <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center font-bold text-white shadow-sm">
+                       D
+                    </div>
+                    <span className="font-bold text-xl tracking-tight text-slate-900">SurveyDonkey</span>
+                 </div>
                 
                 <nav 
                    className="nav-toggle" 
@@ -73,13 +73,13 @@ export const AdminDashboard: React.FC<Props> = ({
             <div>
                 <div className="flex justify-between items-center mb-8">
                    <h1 className="text-3xl font-bold text-slate-800">Your Surveys</h1>
-                   <button 
-                     onClick={onCreateSurvey} 
-                     className="btn-base bg-brand-600 text-white flex items-center gap-2 hover:bg-brand-700 shadow-lg shadow-brand-100"
-                   >
-                      <Plus size={18} />
-                      <span>New Survey</span>
-                   </button>
+                    <button 
+                      onClick={onCreateSurvey} 
+                      className="btn-base bg-brand-600 text-white flex items-center gap-2 hover:bg-brand-700 shadow-sm"
+                    >
+                       <Plus size={18} />
+                       <span>New Survey</span>
+                    </button>
                 </div>
 
                 {surveys.length > 0 ? (
@@ -106,12 +106,12 @@ export const AdminDashboard: React.FC<Props> = ({
                          <div className="bg-slate-50 px-6 py-4 border-t border-slate-100 flex justify-between items-center">
                             <div className="flex gap-2">
                                {survey.gamifiedData && (
-                                  <button 
-                                    onClick={() => onSelectSurvey(survey.id)}
-                                    className="btn-sm bg-brand-600 text-white flex items-center gap-1 hover:bg-brand-700 shadow-sm"
-                                  >
-                                    <Play size={14} fill="currentColor" /> Play
-                                  </button>
+                                   <button 
+                                     onClick={() => onSelectSurvey(survey.id)}
+                                     className="btn-sm bg-brand-600 text-white flex items-center gap-1 hover:bg-brand-700"
+                                   >
+                                     <Play size={14} fill="currentColor" /> Play
+                                   </button>
                                )}
                                <button 
                                  onClick={() => onEditSurvey(survey.id)}
@@ -136,11 +136,11 @@ export const AdminDashboard: React.FC<Props> = ({
                     <div className="bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
                       <FileText size={32} />
                     </div>
-                    <h2 className="text-2xl font-bold text-slate-800 mb-2">No Surveys Yet</h2>
-                    <p className="text-slate-500 mb-8 max-w-sm mx-auto">Create your first gamified survey to start collecting engaging data.</p>
-                    <button onClick={onCreateSurvey} className="bg-brand-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-100">
-                      Create First Survey
-                    </button>
+                     <h2 className="text-2xl font-bold text-slate-800 mb-2">No Surveys Yet</h2>
+                     <p className="text-slate-500 mb-8 max-w-sm mx-auto">Create your first gamified survey to start collecting engaging data.</p>
+                     <button onClick={onCreateSurvey} className="bg-brand-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-brand-700 transition-all shadow-md">
+                       Create First Survey
+                     </button>
                   </div>
                 )}
             </div>

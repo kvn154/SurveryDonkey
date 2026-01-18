@@ -156,7 +156,7 @@ export const TopTierRank: React.FC<Props> = ({ surveyId, gamifiedData, onComplet
         <p className="text-slate-400 text-center max-w-md mb-8">No gamified content available for Top Tier Rank. Please ensure gamification is enabled in Admin.</p>
         <Link 
           to="/" 
-          className="bg-white text-slate-950 px-8 py-3 rounded-xl font-bold hover:bg-slate-200 transition-all shadow-lg shadow-white/10"
+          className="bg-white text-slate-950 px-8 py-3 rounded-xl font-bold hover:bg-slate-200 transition-all shadow-md"
         >
           Back to Dashboard
         </Link>
@@ -217,7 +217,7 @@ export const TopTierRank: React.FC<Props> = ({ surveyId, gamifiedData, onComplet
                       draggable
                       onDragStart={(e) => handleDragStart(e, item, tier.label)}
                        className={`
-                        text-[10px] md:text-xs font-bold bg-slate-800 shadow-sm px-2 py-1.5 rounded flex items-center gap-1 transition-transform active:scale-95 cursor-pointer
+                        text-[10px] md:text-xs font-bold bg-slate-800 px-2 py-1.5 rounded flex items-center gap-1 transition-transform active:scale-95 cursor-pointer
                         ${selectedItem?.item.id === item.id 
                            ? 'border-2 border-rank-500 ring-2 ring-rank-500/50 text-white' 
                            : 'border border-slate-600 text-slate-200 hover:border-slate-500'
@@ -237,7 +237,7 @@ export const TopTierRank: React.FC<Props> = ({ surveyId, gamifiedData, onComplet
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, 'pool')}
             onClick={() => handleContainerInteraction('pool')}
-            className="w-[40%] md:w-[35%] h-full bg-slate-950 flex flex-col border-l border-slate-800 shadow-2xl z-10"
+            className="w-[40%] md:w-[35%] h-full bg-slate-950 flex flex-col border-l border-slate-800 z-10"
          >
             <div className="p-3 bg-slate-900 border-b border-slate-800">
                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Queue</span>
@@ -252,9 +252,9 @@ export const TopTierRank: React.FC<Props> = ({ surveyId, gamifiedData, onComplet
                     draggable
                     onDragStart={(e) => handleDragStart(e, item, 'pool')}
                     className={`
-                      p-3 rounded-lg border cursor-pointer shadow-sm transition-all active:scale-95 flex flex-col gap-1
+                      p-3 rounded-lg border cursor-pointer transition-all active:scale-95 flex flex-col gap-1
                       ${selectedItem?.item.id === item.id 
-                        ? 'bg-rank-900/50 border-rank-500 ring-1 ring-rank-500 shadow-[0_0_15px_rgba(99,102,241,0.2)] z-10' 
+                        ? 'bg-rank-900/50 border-rank-500 ring-1 ring-rank-500 z-10' 
                         : 'bg-slate-800 border-slate-700 hover:border-slate-500 hover:bg-slate-700'
                       }
                     `}
@@ -280,9 +280,9 @@ export const TopTierRank: React.FC<Props> = ({ surveyId, gamifiedData, onComplet
                 <button
                    onClick={(e) => { e.stopPropagation(); handleNext(); }}
                    disabled={items.length > 0}
-                   className={`btn-hero w-full flex items-center justify-center gap-2 shadow-lg ${
+                   className={`btn-hero w-full flex items-center justify-center gap-2 shadow-md ${
                      items.length === 0 
-                       ? 'bg-gradient-to-r from-rank-500 to-rank-600 text-white shadow-rank-900/20' 
+                       ? 'bg-gradient-to-r from-rank-500 to-rank-600 text-white' 
                        : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
                    }`}
                  >

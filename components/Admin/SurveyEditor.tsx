@@ -167,7 +167,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
   return (
     <div className="max-w-5xl mx-auto py-10 px-4 sm:px-6">
       {/* Sticky Header - btn-lg scale */}
-      <div className="bg-white/95 border border-slate-200 p-5 rounded-3xl flex justify-between items-center sticky top-2 z-50 mb-10 shadow-2xl backdrop-blur-md">
+      <div className="bg-white/95 border border-slate-200 p-5 rounded-3xl flex justify-between items-center sticky top-2 z-50 mb-10 shadow-md backdrop-blur-md">
         <div className="flex items-center gap-4">
            <div className="bg-brand-50 p-3 rounded-2xl border border-brand-100">
               <LayoutGrid className="text-brand-600" size={24} />
@@ -186,7 +186,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
            <button 
              onClick={handleSave}
              disabled={isSaving || !survey.title || survey.questions?.some(q => !q.text)}
-             className="btn-lg bg-slate-900 text-white flex items-center gap-2 hover:bg-black shadow-xl shadow-slate-200"
+             className="btn-lg bg-slate-900 text-white flex items-center gap-2 hover:bg-black shadow-md"
            >
              {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Save Survey
            </button>
@@ -195,7 +195,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
 
       <div className="space-y-8">
          {/* Title Section - High Contrast */}
-         <div className="bg-white p-8 rounded-[2rem] border-2 border-slate-100 shadow-sm focus-within:border-brand-500 transition-colors">
+         <div className="bg-white p-8 rounded-[2rem] border-2 border-slate-100 focus-within:border-brand-500 transition-colors">
             <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">Survey Identification</label>
             <input 
               type="text"
@@ -210,13 +210,13 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
          <div className="flex bg-slate-100 p-1.5 rounded-2xl w-fit">
             <button 
               onClick={() => setActiveTab('questions')}
-              className={`btn-base px-8 flex items-center gap-2 border-none shadow-none ${activeTab === 'questions' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700 bg-transparent hover:bg-white/50'}`}
+              className={`btn-base px-8 flex items-center gap-2 border-none shadow-none ${activeTab === 'questions' ? 'bg-white text-slate-900 border border-slate-200' : 'text-slate-500 hover:text-slate-700 bg-transparent hover:bg-white/50'}`}
             >
                <ListOrdered size={18} /> Questions
             </button>
             <button 
               onClick={() => setActiveTab('games')}
-              className={`btn-base px-8 flex items-center gap-2 border-none shadow-none ${activeTab === 'games' ? 'bg-white text-brand-600 shadow-sm border border-brand-100' : 'text-slate-500 hover:text-slate-700 bg-transparent hover:bg-white/50'}`}
+              className={`btn-base px-8 flex items-center gap-2 border-none shadow-none ${activeTab === 'games' ? 'bg-white text-brand-600 border border-brand-100' : 'text-slate-500 hover:text-slate-700 bg-transparent hover:bg-white/50'}`}
             >
                <Wand2 size={18} /> Gamification
             </button>
@@ -232,9 +232,9 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
                     onDragStart={(e) => handleDragStart(e, idx)}
                     onDragOver={(e) => handleDragOver(e, idx)}
                     onDragEnd={handleDragEnd}
-                    className={`
+                     className={`
                       bg-white p-8 rounded-[2.5rem] border-2 transition-all relative group
-                      ${draggedIndex === idx ? 'opacity-20 scale-95 border-brand-500 border-dashed bg-brand-50/10' : 'border-slate-100 hover:border-slate-200 shadow-sm'}
+                      ${draggedIndex === idx ? 'opacity-20 scale-95 border-brand-500 border-dashed bg-brand-50/10' : 'border-slate-100 hover:border-slate-200'}
                     `}
                  >
                     <div className="flex gap-8">
@@ -246,7 +246,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
                        <div className="flex-1">
                           <div className="flex justify-between items-center mb-6">
                              <div className="flex items-center gap-4">
-                                <span className="bg-slate-900 text-white w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black shadow-lg">
+                                 <span className="bg-slate-900 text-white w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black shadow-sm">
                                    {idx + 1}
                                 </span>
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Question Block</label>
@@ -263,7 +263,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
                              type="text"
                              value={q.text}
                              onChange={e => handleUpdateQuestion(idx, 'text', e.target.value)}
-                             className="w-full border-2 border-slate-50 rounded-2xl px-6 py-5 focus:border-brand-500 focus:bg-white outline-none mb-8 text-xl font-bold bg-slate-50/50 transition-all placeholder:text-slate-300 shadow-inner"
+                             className="w-full border-2 border-slate-50 rounded-2xl px-6 py-5 focus:border-brand-500 focus:bg-white outline-none mb-8 text-xl font-bold bg-slate-50/50 transition-all placeholder:text-slate-300"
                              placeholder="What insights are you looking for?"
                           />
                           
@@ -324,7 +324,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
                                                  type="text"
                                                  value={opt}
                                                  onChange={e => handleOptionChange(idx, optIdx, e.target.value)}
-                                                 className="w-full border-2 border-white rounded-xl px-5 py-3 text-sm font-bold bg-white shadow-sm focus:border-brand-500 outline-none transition-all shadow-slate-200/50"
+                                                 className="w-full border-2 border-white rounded-xl px-5 py-3 text-sm font-bold bg-white shadow-sm focus:border-brand-500 outline-none transition-all"
                                                  placeholder={`Option ${optIdx + 1}`}
                                               />
                                            </div>
@@ -349,7 +349,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
                 onClick={handleAddQuestion} 
                 className="w-full py-12 border-4 border-dashed border-slate-100 rounded-[3rem] text-slate-400 font-black hover:border-brand-200 hover:text-brand-500 hover:bg-brand-50/10 transition-all flex flex-col items-center justify-center gap-4 bg-white/50 group border-none shadow-none"
               >
-                 <div className="bg-slate-50 p-5 rounded-[1.5rem] group-hover:bg-brand-100 group-hover:text-brand-600 transition-colors shadow-inner">
+                 <div className="bg-slate-50 p-5 rounded-[1.5rem] group-hover:bg-brand-100 group-hover:text-brand-600 transition-colors">
                     <Plus size={40} />
                  </div>
                  <span className="uppercase tracking-[0.4em] text-[10px]">Add Question Block</span>
@@ -361,7 +361,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
           {activeTab === 'games' && (
             <div className="animate-in fade-in duration-500">
                {!survey.gamifiedData ? (
-                  <div className="text-center py-24 bg-white rounded-[4rem] border-2 border-slate-100 shadow-sm flex flex-col items-center">
+                  <div className="text-center py-24 bg-white rounded-[4rem] border-2 border-slate-100 flex flex-col items-center">
                      <div className="bg-brand-50 p-10 rounded-full text-brand-200 mb-10 animate-pulse border border-brand-100">
                         <Wand2 size={80} />
                      </div>
@@ -371,7 +371,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
                      </p>
                      <button 
                        onClick={() => setShowGamifyModal(true)}
-                       className="btn-hero px-16 bg-brand-600 text-white hover:bg-brand-700 shadow-2xl shadow-brand-200 flex items-center gap-4 border-none"
+                       className="btn-hero px-16 bg-brand-600 text-white hover:bg-brand-700 shadow-md flex items-center gap-4 border-none"
                      >
                         <Wand2 size={28} /> Generate Games
                      </button>
@@ -383,7 +383,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
                            <BarChart size={120} className="text-brand-900" />
                         </div>
                         <div className="flex items-center gap-6 relative z-10">
-                           <div className="bg-white p-4 rounded-2xl text-brand-600 shadow-sm border border-brand-100">
+                           <div className="bg-white p-4 rounded-2xl text-brand-600 border border-brand-100">
                               <BarChart size={32} />
                            </div>
                            <div>
@@ -393,7 +393,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
                         </div>
                         <button 
                            onClick={() => setShowGamifyModal(true)}
-                           className="btn-base bg-white border border-brand-200 text-brand-600 hover:bg-brand-50 transition-all flex items-center gap-2 relative z-10 shadow-sm"
+                           className="btn-base bg-white border border-brand-200 text-brand-600 hover:bg-brand-50 transition-all flex items-center gap-2 relative z-10"
                         >
                            <RefreshCw size={18} /> Regenerate
                         </button>
@@ -401,7 +401,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
 
                      <div className="space-y-6">
                         {(survey.gamifiedData as GamifiedQuestionData[]).map((gData, idx) => (
-                           <div key={idx} className="border-2 border-slate-100 rounded-[3rem] overflow-hidden shadow-sm bg-white hover:border-slate-200 transition-colors">
+                           <div key={idx} className="border-2 border-slate-100 rounded-[3rem] overflow-hidden bg-white hover:border-slate-200 transition-colors">
                               <div 
                                 onClick={() => setExpandedGameIndex(expandedGameIndex === idx ? null : idx)}
                                 className="bg-slate-50/50 p-8 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition-colors"
@@ -432,7 +432,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
                                       <div className="flex items-center gap-4 mb-8">
                                          <div className={`w-5 h-5 rounded-full shadow-inner ring-4 ring-white ${gData.games.top_tier_rank.applicable ? 'bg-rank-500 shadow-rank-100' : 'bg-slate-300'}`}></div>
                                          <h4 className="font-black text-slate-900 text-xl tracking-tight">Top Tier Settings</h4>
-                                         <label className="ml-auto flex items-center gap-4 text-xs font-black text-slate-500 cursor-pointer bg-white px-6 py-3 rounded-2xl border-2 border-slate-100 hover:border-brand-500 transition-all shadow-sm">
+                                         <label className="ml-auto flex items-center gap-4 text-xs font-black text-slate-500 cursor-pointer bg-white px-6 py-3 rounded-2xl border-2 border-slate-100 hover:border-brand-500 transition-all">
                                              <input 
                                                type="checkbox"
                                                checked={gData.games.top_tier_rank.applicable}
@@ -488,7 +488,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
                                       <div className="flex items-center gap-4 mb-8">
                                          <div className={`w-5 h-5 rounded-full shadow-inner ring-4 ring-white ${gData.games.imposter_spyfall.applicable ? 'bg-imposter-500 shadow-imposter-100' : 'bg-slate-300'}`}></div>
                                          <h4 className="font-black text-slate-900 text-xl tracking-tight">Imposter Settings</h4>
-                                         <label className="ml-auto flex items-center gap-4 text-xs font-black text-slate-500 cursor-pointer bg-white px-6 py-3 rounded-2xl border-2 border-slate-100 hover:border-brand-500 transition-all shadow-sm">
+                                         <label className="ml-auto flex items-center gap-4 text-xs font-black text-slate-500 cursor-pointer bg-white px-6 py-3 rounded-2xl border-2 border-slate-100 hover:border-brand-500 transition-all">
                                              <input 
                                                type="checkbox"
                                                checked={gData.games.imposter_spyfall.applicable}
@@ -521,7 +521,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
                                                <label className="block text-[10px] font-black text-slate-500 mb-6 uppercase tracking-[0.2em]">Imposter Questions</label>
                                                <div className="grid grid-cols-1 gap-8">
                                                    {gData.games.imposter_spyfall.derived_questions.map((iq, iqIdx) => (
-                                                   <div key={iqIdx} className="p-8 bg-white rounded-[2.5rem] border-2 border-slate-100 shadow-md relative">
+                                                   <div key={iqIdx} className="p-8 bg-white rounded-[2.5rem] border-2 border-slate-100 relative">
                                                        <div className="mb-8">
                                                            <label className="text-[9px] font-black text-imposter-600 uppercase tracking-[0.3em] block mb-3">QUESTION</label>
                                                            <input 
@@ -562,7 +562,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
                                                                    <label className="text-[10px] font-black text-slate-500 uppercase mb-3 block tracking-[0.2em]">Options</label>
                                                                    <div className="flex flex-wrap gap-3">
                                                                        {(iq.choices_scales || []).map((choice, cIdx) => (
-                                                                           <div key={cIdx} className="flex items-center gap-3 bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-2 shadow-sm focus-within:border-brand-500 transition-all">
+                                                                           <div key={cIdx} className="flex items-center gap-3 bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-2 focus-within:border-brand-500 transition-all">
                                                                                <input 
                                                                                    value={choice}
                                                                                    onChange={(e) => {
@@ -622,7 +622,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
 
       {showGamifyModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl border border-slate-200">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-lg border border-slate-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="bg-brand-100 p-2 rounded-lg">
                 <Wand2 size={20} className="text-brand-600" />

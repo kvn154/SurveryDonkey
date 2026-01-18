@@ -81,13 +81,13 @@
 
   .nav-toggle {
     --duration: 0.3s;
-    @apply relative bg-slate-100 p-1 rounded-full border border-slate-200 shadow-inner flex items-center;
+    @apply relative bg-slate-100 p-1 rounded-full border border-slate-200 flex items-center;
     width: 240px;
     height: 44px;
   }
 
   .nav-toggle__indicator {
-    @apply absolute top-1 bottom-1 left-1 bg-white rounded-full shadow-md border border-slate-200/50 transition-all;
+    @apply absolute top-1 bottom-1 left-1 bg-white rounded-full shadow-sm border border-slate-200/50 transition-all;
     width: calc(50% - 4px);
     transition-timing-function: var(--timing-nav);
     transition-duration: var(--duration);
