@@ -1,4 +1,4 @@
-# SurveyGamify
+# SurveyDonkey
 A type-safe gamified survey platform built with React, Hono, and Drizzle ORM.
 
 ## Requirements
@@ -14,6 +14,6 @@ A type-safe gamified survey platform built with React, Hono, and Drizzle ORM.
 
 ## Docker
 ```bash
-docker build -t survey-monkey .
-docker run -p 3000:3000 -e DATABASE_URL=... -e GEMINI_API_KEY=... survey-monkey
+docker build -t survey-donkey .
+docker run -p 3000:3000 -e DATABASE_URL=... -e GEMINI_API_KEY=... survey-donkey
 ```

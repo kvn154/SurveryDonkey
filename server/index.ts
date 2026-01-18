@@ -9,8 +9,8 @@ import { eq } from 'drizzle-orm';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { arktypeValidator } from '@hono/arktype-validator';
-import { generateImposterScenario } from './services/aiService';
-import { Question, SurveyUpsert, ResponseInsert } from '../types';
+import { gamifySurvey } from './services/aiService';
+import { SurveyUpsert, ResponseInsert, GamifyRequest } from '../types';
 
 const app = new Hono();
 
@@ -46,6 +46,7 @@ const routes = app
     const result = await db.transaction(async (tx) => {
       const [newSurvey] = await tx.insert(surveys).values({
         title: body.title,
+        gamifiedData: body.gamifiedData,
       }).returning();
 
       if (body.questions.length > 0) {
@@ -71,7 +72,7 @@ const routes = app
     await db.transaction(async (tx) => {
       // 1. Update survey title
       await tx.update(surveys)
-        .set({ title: body.title })
+        .set({ title: body.title, gamifiedData: body.gamifiedData })
         .where(eq(surveys.id, id));
 
       // 2. Handle Questions (Non-destructive)
@@ -211,10 +212,12 @@ const routes = app
     }).returning();
     return c.json(result);
   })
-  .post('/ai/generate-scenario', async (c) => {
-    const { questions } = await c.req.json<{ questions: Question[] }>();
-    const scenario = await generateImposterScenario(questions);
-    return c.json(scenario);
+  .post('/ai/gamify', arktypeValidator('json', GamifyRequest), async (c) => {
+    const { companyName, productDescription, questions } = c.req.valid('json');
+    console.log(`Gamifying for ${companyName} with ${questions.length} questions`);
+    const result = await gamifySurvey(companyName, productDescription, questions);
+    console.log(`AI returned ${result.length} gamified items`);
+    return c.json(result);
   });
 
 // Static Files

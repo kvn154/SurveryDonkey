@@ -12,6 +12,7 @@ export const playerTypeEnum = pgEnum('player_type', ['REAL', 'BOT']);
 export const surveys = pgTable('surveys', {
   id: uuid('id').defaultRandom().primaryKey(),
   title: text('title').notNull(),
+  gamifiedData: jsonb('gamified_data'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

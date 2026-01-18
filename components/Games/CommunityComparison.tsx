@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { TierItem, TierLevel } from '../../types';
 import { StorageService } from '../../services/storageService';
-import { BarChart3, Users, CheckCircle, XCircle, TrendingUp, Trophy, ArrowLeft, Share2 } from 'lucide-react';
+import { Users, XCircle, TrendingUp, Trophy, ArrowLeft, Share2, Loader2 } from 'lucide-react';
 
 interface CommunityRanking {
   tier: TierLevel;
@@ -155,28 +155,19 @@ export const CommunityComparison: React.FC<ComparisonProps> = ({
   const fallbackCopyTextToClipboard = (text: string) => {
     const textArea = document.createElement("textarea");
     textArea.value = text;
-    
-    // Avoid scrolling to bottom
     textArea.style.top = "0";
     textArea.style.left = "0";
     textArea.style.position = "fixed";
     textArea.style.opacity = "0";
-
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
-
     try {
-      const successful = document.execCommand('copy');
-      if (successful) {
-        alert('Results copied to clipboard!');
-      } else {
-        console.error('Fallback: Copying text command was unsuccessful');
-      }
+      document.execCommand('copy');
+      alert('Results copied to clipboard!');
     } catch (err) {
       console.error('Fallback: Oops, unable to copy', err);
     }
-    
     document.body.removeChild(textArea);
   };
 
@@ -193,7 +184,7 @@ export const CommunityComparison: React.FC<ComparisonProps> = ({
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+        <Loader2 className="animate-spin text-purple-500" size={48} />
       </div>
     );
   }
@@ -201,291 +192,248 @@ export const CommunityComparison: React.FC<ComparisonProps> = ({
   if (communityData.length === 0) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-center">
-        <Trophy size={64} className="text-slate-700 mb-6" />
-        <h2 className="text-2xl font-bold text-white mb-2">First to Rank!</h2>
-        <p className="text-slate-400 max-w-md">
-          You're the first person to complete this survey. Check back later to see how your rankings compare with others!
-        </p>
-        <button 
-          onClick={onBack}
-          className="mt-8 px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors"
-        >
-          Back to Admin
-        </button>
+        <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 shadow-2xl">
+           <Trophy size={64} className="text-yellow-500/50 mx-auto mb-6" />
+           <h2 className="text-2xl font-bold text-white mb-2 uppercase tracking-tighter italic">First to Rank!</h2>
+           <p className="text-slate-400 max-w-md font-medium">
+             You're the first person to complete this survey. Check back later to see how your rankings compare with others!
+           </p>
+           <button 
+             onClick={onBack}
+             className="mt-8 px-8 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-all font-bold"
+           >
+             Back to Ranking
+           </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-white p-4 md:p-6">
-
-      {/* Header */}
+    <div className="min-h-screen bg-slate-950 text-white p-4 md:p-8 selection:bg-purple-500/30">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors p-2"
-          >
-            <ArrowLeft size={20} />
-            <span className="text-sm">Back to Ranking</span>
-          </button>
-          
-          <button
-            onClick={handleShare}
-            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            <Share2 size={16} />
-            <span className="text-sm">Share Results</span>
-          </button>
-        </div>
-
-        {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">
-            How Your Rankings Compare
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
-              With the Community
-            </span>
-          </h1>
-          <p className="text-slate-400 max-w-2xl mx-auto">
-            See how your tier list choices align with thousands of other users
-          </p>
-        </div>
-
-        {/* Main Comparison Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          
-          {/* Left Column: Your Rankings */}
-          <div className="lg:col-span-1">
-            <div className="bg-slate-800/30 backdrop-blur rounded-xl border border-slate-700 p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                  <span className="font-bold">You</span>
-                </div>
-                <h2 className="text-xl font-bold">Your Tier List</h2>
-              </div>
-              
-              {TIERS.map(tier => (
-                <div key={tier.label} className="mb-4 last:mb-0">
-                  <div className={`flex items-center justify-between mb-2 p-3 rounded-lg ${getTierBg(tier.label as TierLevel)}`}>
-                    <span className={`font-bold text-lg ${getTierColor(tier.label as TierLevel)}`}>
-                      {tier.label} Tier
-                    </span>
-                    <span className="text-slate-400 text-sm">
-                      {userRankings[tier.label as TierLevel]?.length || 0} items
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    {userRankings[tier.label as TierLevel]?.map(item => (
-                      <div key={item.id} className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                        <span className="text-slate-200">{item.content}</span>
-                      </div>
-                    ))}
-                    {(!userRankings[tier.label as TierLevel] || userRankings[tier.label as TierLevel].length === 0) && (
-                      <div className="text-slate-500 italic text-sm p-3">No items placed here</div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Middle Column: Community Rankings */}
-          <div className="lg:col-span-1">
-            <div className="bg-slate-800/30 backdrop-blur rounded-xl border border-slate-700 p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
-                  <Users size={20} />
-                </div>
-                <h2 className="text-xl font-bold">Community Consensus</h2>
-              </div>
-              
-              {communityData.map((communityTier) => (
-                <div key={communityTier.tier} className="mb-4 last:mb-0">
-                  <div className={`flex items-center justify-between mb-2 p-3 rounded-lg ${getTierBg(communityTier.tier)}`}>
-                    <div className="flex items-center gap-3">
-                      <span className={`font-bold text-lg ${getTierColor(communityTier.tier)}`}>
-                        {communityTier.tier} Tier
-                      </span>
-                      <div className="flex items-center gap-1 text-sm">
-                        <BarChart3 size={14} />
-                        <span>{communityTier.percentage}% agree</span>
-                      </div>
-                    </div>
-                    <span className="text-slate-400 text-sm">
-                      {communityTier.items.length} items
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    {communityTier.items.map(item => (
-                      <div key={item.id} className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                        <div className="flex justify-between items-center">
-                          <span className="text-slate-200">{item.content}</span>
-                          <div className="w-16 bg-slate-700 rounded-full h-2 overflow-hidden">
-                            <div 
-                              className="bg-blue-500 h-full rounded-full"
-                              style={{ width: `${communityTier.percentage}%` }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right Column: Stats & Insights */}
-          <div className="lg:col-span-1">
-            <div className="bg-slate-800/30 backdrop-blur rounded-xl border border-slate-700 p-6 h-full">
-              <h2 className="text-xl font-bold mb-6">Your Results</h2>
-              
-              {/* Agreement Score */}
-              <div className="mb-8">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-slate-300">Agreement Score</h3>
-                  <div className="flex items-center gap-2">
-                    <TrendingUp size={16} className="text-green-400" />
-                    <span className="text-sm text-slate-400">vs Community</span>
-                  </div>
-                </div>
-                <div className="relative">
-                  <div className="text-5xl font-bold text-center mb-2">{agreementScore}%</div>
-                  <div className="w-full bg-slate-700 rounded-full h-4 overflow-hidden">
-                    <div 
-                      className="bg-gradient-to-r from-green-500 to-emerald-500 h-full rounded-full transition-all duration-1000"
-                      style={{ width: `${agreementScore}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs text-slate-400 mt-2">
-                    <span>0%</span>
-                    <span>50%</span>
-                    <span>100%</span>
-                  </div>
-                </div>
-                <p className="text-sm text-slate-400 mt-4">
-                  You agree with the community on {perfectMatches} out of {allItems.length} items
-                </p>
-              </div>
-
-              {/* Surprising Picks */}
-              {surprisingItems.length > 0 && (
-                <div className="mb-8">
-                  <h3 className="font-semibold text-slate-300 mb-4 flex items-center gap-2">
-                    <XCircle size={16} className="text-red-400" />
-                    Surprising Picks
-                  </h3>
-                  <div className="space-y-3">
-                    {surprisingItems.map((surprise, index) => (
-                      <div key={index} className="bg-slate-800/50 p-4 rounded-lg border border-red-500/20">
-                        <div className="font-medium mb-2">{surprise.item.content}</div>
-                        <div className="flex justify-between text-sm">
-                          <div className="flex items-center gap-2">
-                            <span className="text-slate-400">You placed:</span>
-                            <span className={`font-bold ${getTierColor(surprise.userTier)}`}>
-                              {surprise.userTier}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-slate-400">Community:</span>
-                            <span className={`font-bold ${getTierColor(surprise.communityTier)}`}>
-                              {surprise.communityTier}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Perfect Matches */}
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-12">
+           <div className="flex items-center gap-4">
+              <button
+                onClick={onBack}
+                className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors bg-slate-900 p-2 rounded-lg border border-slate-800 shadow-inner"
+              >
+                <ArrowLeft size={20} />
+              </button>
               <div>
-                <h3 className="font-semibold text-slate-300 mb-4 flex items-center gap-2">
-                  <CheckCircle size={16} className="text-green-400" />
-                  Perfect Matches
-                </h3>
-                <div className="grid grid-cols-5 gap-2">
-                  {allItems.map((item, index) => {
-                    const userTier = findItemTier(item, userRankings);
-                    const communityTier = findItemTier(item, communityData);
-                    const isMatch = userTier === communityTier && userTier !== null;
-                    
-                    return (
-                      <div
-                        key={item.id}
-                        className={`aspect-square rounded-lg flex items-center justify-center ${
-                          isMatch 
-                            ? 'bg-green-500/20 border border-green-500/30' 
-                            : 'bg-slate-800/50 border border-slate-700'
-                        }`}
-                        title={isMatch ? `Perfect match: ${item.content}` : item.content}
-                      >
-                        {isMatch ? (
-                          <CheckCircle size={16} className="text-green-400" />
-                        ) : (
-                          <span className="text-xs text-slate-500">{index + 1}</span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                <p className="text-sm text-slate-400 mt-3">
-                  {perfectMatches} perfect matches with community consensus
-                </p>
+                 <h1 className="text-2xl font-bold tracking-tight">Community Consensus</h1>
+                 <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Post-Mission Debrief</p>
               </div>
+           </div>
+           
+           <button
+             onClick={handleShare}
+             className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg transition-all shadow-lg shadow-purple-900/20 font-bold active:scale-95 text-sm"
+           >
+             <Share2 size={18} />
+             <span>Share Rankings</span>
+           </button>
+        </header>
 
-              {/* Ranking Distribution */}
-              <div className="mt-8 pt-6 border-t border-slate-700">
-                <h3 className="font-semibold text-slate-300 mb-4">Your Tier Distribution</h3>
-                <div className="space-y-3">
-                  {TIERS.map(tier => {
-                    const count = userRankings[tier.label as TierLevel]?.length || 0;
-                    const percentage = allItems.length > 0 ? (count / allItems.length) * 100 : 0;
-                    
-                    return (
-                      <div key={tier.label} className="flex items-center gap-3">
-                        <span className={`font-bold w-6 ${getTierColor(tier.label as TierLevel)}`}>
-                          {tier.label}
-                        </span>
-                        <div className="flex-1 bg-slate-700 rounded-full h-3 overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full transition-all duration-1000 ${
-                              tier.label === 'S' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
-                              tier.label === 'A' ? 'bg-gradient-to-r from-red-500 to-red-600' :
-                              tier.label === 'B' ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
-                              tier.label === 'C' ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
-                              'bg-gradient-to-r from-slate-500 to-slate-600'
-                            }`}
-                            style={{ width: `${percentage}%` }}
-                          />
-                        </div>
-                        <span className="text-sm text-slate-400 w-10 text-right">
-                          {count} ({Math.round(percentage)}%)
-                        </span>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Comparison Panels */}
+          <div className="lg:col-span-8 space-y-8">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Your Rankings */}
+                <div className="bg-slate-900/50 backdrop-blur-md rounded-xl border border-slate-800 p-6 shadow-xl">
+                   <div className="flex items-center gap-3 mb-6">
+                      <div className="w-8 h-8 rounded bg-brand-500 flex items-center justify-center text-brand-900 font-bold text-xs shadow-lg">
+                        YOU
                       </div>
-                    );
-                  })}
+                      <h2 className="text-lg font-bold uppercase tracking-tight italic">Your Perspective</h2>
+                   </div>
+                   
+                   <div className="space-y-4">
+                      {TIERS.map(tier => (
+                         <div key={tier.label}>
+                            <div className={`flex items-center justify-between mb-2 p-2 rounded-md ${getTierBg(tier.label as TierLevel)} border border-white/5`}>
+                               <span className={`font-bold text-sm ${getTierColor(tier.label as TierLevel)}`}>
+                                 {tier.label} TIER
+                               </span>
+                               <span className="text-slate-500 text-[10px] font-bold">
+                                 {userRankings[tier.label as TierLevel]?.length || 0} ITEMS
+                               </span>
+                            </div>
+                            <div className="flex flex-col gap-1.5 pl-2">
+                               {userRankings[tier.label as TierLevel]?.map(item => (
+                                  <div key={item.id} className="bg-slate-800/40 p-2 rounded border border-slate-700/50">
+                                     <span className="text-slate-300 text-xs font-medium">{item.content}</span>
+                                  </div>
+                               ))}
+                               {(!userRankings[tier.label as TierLevel] || userRankings[tier.label as TierLevel].length === 0) && (
+                                  <div className="text-slate-600 italic text-[10px] p-2">Empty tier</div>
+                               )}
+                            </div>
+                         </div>
+                      ))}
+                   </div>
                 </div>
-              </div>
-            </div>
+
+                {/* Community Rankings */}
+                <div className="bg-slate-900/50 backdrop-blur-md rounded-xl border border-slate-800 p-6 shadow-xl">
+                   <div className="flex items-center gap-3 mb-6">
+                      <div className="w-8 h-8 rounded bg-slate-700 flex items-center justify-center text-slate-300 font-bold text-xs shadow-lg">
+                        <Users size={16} />
+                      </div>
+                      <h2 className="text-lg font-bold uppercase tracking-tight italic">The Consensus</h2>
+                   </div>
+                   
+                   <div className="space-y-4">
+                      {communityData.map((communityTier) => (
+                         <div key={communityTier.tier}>
+                            <div className={`flex items-center justify-between mb-2 p-2 rounded-md ${getTierBg(communityTier.tier)} border border-white/5`}>
+                               <div className="flex items-center gap-2">
+                                  <span className={`font-bold text-sm ${getTierColor(communityTier.tier)}`}>
+                                    {communityTier.tier} TIER
+                                  </span>
+                                  <span className="text-[9px] text-slate-500 font-bold bg-black/30 px-1.5 py-0.5 rounded">
+                                     {communityTier.percentage}% AGREE
+                                  </span>
+                               </div>
+                            </div>
+                            <div className="flex flex-col gap-1.5 pl-2">
+                               {communityTier.items.map(item => (
+                                  <div key={item.id} className="bg-slate-800/40 p-2 rounded border border-slate-700/50 flex items-center justify-between">
+                                     <span className="text-slate-300 text-xs font-medium">{item.content}</span>
+                                     <div className="w-12 bg-slate-700/50 rounded-full h-1">
+                                        <div 
+                                          className="bg-brand-500 h-full rounded-full"
+                                          style={{ width: `${communityTier.percentage}%` }}
+                                        />
+                                     </div>
+                                  </div>
+                               ))}
+                            </div>
+                         </div>
+                      ))}
+                   </div>
+                </div>
+             </div>
+             
+             {/* Surprising Picks */}
+             {surprisingItems.length > 0 && (
+                <div className="bg-slate-900/50 backdrop-blur-md rounded-xl border border-red-500/10 p-6">
+                   <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                     <XCircle size={16} className="text-red-500" />
+                     Statistical Outliers
+                   </h3>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {surprisingItems.map((surprise, index) => (
+                         <div key={index} className="bg-slate-950/50 p-4 rounded-lg border border-slate-800 flex flex-col gap-3">
+                            <div className="font-bold text-slate-200 text-sm leading-snug">{surprise.item.content}</div>
+                            <div className="flex justify-between items-center text-[10px] font-bold border-t border-slate-800 pt-3">
+                               <div className="flex items-center gap-1.5">
+                                 <span className="text-slate-500 uppercase tracking-wider">YOU:</span>
+                                 <span className={`px-2 py-0.5 rounded ${getTierBg(surprise.userTier)} ${getTierColor(surprise.userTier)}`}>
+                                   {surprise.userTier}
+                                 </span>
+                               </div>
+                               <div className="flex items-center gap-1.5">
+                                 <span className="text-slate-500 uppercase tracking-wider">COMMUNITY:</span>
+                                 <span className={`px-2 py-0.5 rounded ${getTierBg(surprise.communityTier)} ${getTierColor(surprise.communityTier)}`}>
+                                   {surprise.communityTier}
+                                 </span>
+                               </div>
+                            </div>
+                         </div>
+                      ))}
+                   </div>
+                </div>
+             )}
           </div>
-        </div>
 
-        {/* Bottom CTA */}
-        <div className="text-center mt-12">
-          <div className="inline-flex flex-col md:flex-row items-center gap-6 bg-slate-800/30 backdrop-blur rounded-2xl border border-slate-700 p-8">
-            <Trophy size={48} className="text-yellow-400" />
-            <div className="text-left">
-              <h3 className="text-xl font-bold mb-2">Want to see more comparisons?</h3>
-              <p className="text-slate-400 mb-4">
-                Join our community to contribute to the rankings and unlock detailed analytics
-              </p>
-            </div>
-            <button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold px-8 py-3 rounded-lg transition-all hover:scale-105">
-              Join Community
-            </button>
+          {/* Metrics Column */}
+          <div className="lg:col-span-4 space-y-6">
+             {/* Agreement Score */}
+             <div className="bg-slate-900 rounded-xl border border-slate-800 p-8 shadow-2xl text-center">
+                <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4">Agreement Rating</h3>
+                <div className="relative inline-flex items-center justify-center mb-6">
+                   <svg className="w-32 h-32 transform -rotate-90">
+                      <circle
+                         cx="64"
+                         cy="64"
+                         r="58"
+                         stroke="currentColor"
+                         strokeWidth="8"
+                         fill="transparent"
+                         className="text-slate-800"
+                      />
+                      <circle
+                         cx="64"
+                         cy="64"
+                         r="58"
+                         stroke="currentColor"
+                         strokeWidth="8"
+                         fill="transparent"
+                         strokeDasharray={Math.PI * 2 * 58}
+                         strokeDashoffset={Math.PI * 2 * 58 * (1 - agreementScore / 100)}
+                         className="text-brand-500 transition-all duration-1000 ease-out"
+                         strokeLinecap="round"
+                      />
+                   </svg>
+                   <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-3xl font-bold tracking-tighter">{agreementScore}%</span>
+                   </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                   <p className="text-xs text-slate-400 font-medium">
+                     {perfectMatches} Perfect Alignment{perfectMatches !== 1 ? 's' : ''}
+                   </p>
+                   <p className="text-[10px] text-slate-600 font-bold uppercase tracking-wider">
+                     Across {allItems.length} data points
+                   </p>
+                </div>
+             </div>
+
+             {/* Distribution Chart */}
+             <div className="bg-slate-900 rounded-xl border border-slate-800 p-6 shadow-xl">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Tier Distribution</h3>
+                <div className="space-y-4">
+                   {TIERS.map(tier => {
+                      const count = userRankings[tier.label as TierLevel]?.length || 0;
+                      const percentage = allItems.length > 0 ? (count / allItems.length) * 100 : 0;
+                      
+                      return (
+                         <div key={tier.label} className="space-y-1.5">
+                            <div className="flex justify-between items-center text-[10px] font-bold">
+                               <span className={getTierColor(tier.label as TierLevel)}>{tier.label} TIER</span>
+                               <span className="text-slate-500">{count} ITEM{count !== 1 ? 'S' : ''}</span>
+                            </div>
+                            <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                               <div 
+                                 className={`h-full rounded-full transition-all duration-1000 ${
+                                   tier.label === 'S' ? 'bg-yellow-500' :
+                                   tier.label === 'A' ? 'bg-red-500' :
+                                   tier.label === 'B' ? 'bg-orange-500' :
+                                   tier.label === 'C' ? 'bg-blue-500' :
+                                   'bg-slate-500'
+                                 }`}
+                                 style={{ width: `${percentage}%` }}
+                               />
+                            </div>
+                         </div>
+                      );
+                   })}
+                </div>
+             </div>
+             
+             {/* CTA */}
+             <div className="bg-brand-900/40 rounded-xl border border-brand-500/20 p-6 text-center">
+                <TrendingUp size={32} className="text-brand-400 mx-auto mb-3" />
+                <h4 className="font-bold text-sm mb-2">Drive the Consensus</h4>
+                <p className="text-xs text-brand-200/70 mb-5 leading-relaxed font-medium">Your data contributes to the global consensus for this mission.</p>
+                <button 
+                   onClick={onBack}
+                   className="w-full py-2 bg-brand-500 text-brand-900 font-black rounded-lg text-xs uppercase tracking-widest hover:bg-brand-400 transition-all active:scale-95"
+                >
+                   Finish Mission
+                </button>
+             </div>
           </div>
         </div>
       </div>

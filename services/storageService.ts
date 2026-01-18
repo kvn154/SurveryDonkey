@@ -57,7 +57,7 @@ export const StorageService = {
     return await res.json();
   },
 
-  createSurvey: async (survey: { title: string; questions: Omit<Question, 'id' | 'surveyId'>[] }) => {
+  createSurvey: async (survey: { title: string; questions: Omit<Question, 'id' | 'surveyId'>[]; gamifiedData?: any }) => {
     const res = await client.api.surveys.$post({
       json: survey as any // Cast to any because Omit might not perfectly match the validator's strict requirements
     });
@@ -69,7 +69,7 @@ export const StorageService = {
     return await res.json();
   },
 
-  updateSurvey: async (id: string, survey: { title: string; questions: Omit<Question, 'id' | 'surveyId'>[] }) => {
+  updateSurvey: async (id: string, survey: { title: string; questions: Omit<Question, 'id' | 'surveyId'>[]; gamifiedData?: any }) => {
     const res = await client.api.surveys[':id'].$put({
       param: { id },
       json: survey as any
@@ -97,6 +97,23 @@ export const StorageService = {
       throw new Error('Save failed');
     }
 
+    return await res.json();
+  },
+  gamifySurvey: async (companyName: string, productDescription: string, questions: Question[]) => {
+    // Clean questions for AI processing
+    const cleanedQuestions = questions.map(q => ({
+        text: q.text,
+        type: q.type,
+        options: q.options || [],
+        assignedGame: q.assignedGame || 'BOTH'
+    }));
+
+    const res = await client.api.ai.gamify.$post({
+      json: { companyName, productDescription, questions: cleanedQuestions as any }
+    });
+    if (!res.ok) {
+        throw new Error("Gamification failed");
+    }
     return await res.json();
   },
 };

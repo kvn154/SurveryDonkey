@@ -5,14 +5,21 @@ import { TopTierRank } from './TopTierRank';
 describe('TopTierRank Component', () => {
   const mockProps = {
     surveyId: '123',
-    questions: [
+    gamifiedData: [
       {
-        id: 'q1',
-        surveyId: '123',
-        text: 'Rank these fruits',
-        type: 'RANKING' as const,
-        options: ['Apple', 'Banana', 'Cherry'],
-        assignedGame: 'TOP_TIER' as const,
+        original_question: "Rank these fruits",
+        games: {
+          top_tier_rank: {
+            applicable: true,
+            concepts: ['Apple', 'Banana', 'Cherry'],
+            derived_questions: ['Rank these fruits']
+          },
+          imposter_spyfall: {
+            applicable: false,
+            secret_word: '',
+            derived_questions: []
+          }
+        }
       }
     ],
     onComplete: vi.fn(),
@@ -20,23 +27,32 @@ describe('TopTierRank Component', () => {
   };
 
   it('renders without crashing and does not trigger infinite loops', () => {
-    // If there is an infinite loop, this test will timeout or throw "Maximum update depth exceeded"
     render(<TopTierRank {...mockProps} />);
     
     expect(screen.getByText('Rank these fruits')).toBeDefined();
     expect(screen.getByText('Apple')).toBeDefined();
   });
 
-  it('updates when questions change without infinite loops', () => {
+  it('updates when data changes without infinite loops', () => {
     const { rerender } = render(<TopTierRank {...mockProps} />);
     
     const newProps = {
       ...mockProps,
-      questions: [
+      gamifiedData: [
         {
-          ...mockProps.questions[0],
-          text: 'Rank these cars',
-          options: ['Tesla', 'BMW'],
+          original_question: "Rank these cars",
+          games: {
+            top_tier_rank: {
+              applicable: true,
+              concepts: ['Tesla', 'BMW'],
+              derived_questions: ['Rank these cars']
+            },
+            imposter_spyfall: {
+              applicable: false,
+              secret_word: '',
+              derived_questions: []
+            }
+          }
         }
       ]
     };

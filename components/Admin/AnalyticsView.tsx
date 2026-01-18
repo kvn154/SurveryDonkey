@@ -78,7 +78,7 @@ export const AnalyticsView: React.FC<Props> = ({ survey, responses }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
            <h4 className="text-sm font-bold text-slate-500 uppercase">Total Responses</h4>
-           <p className="text-4xl font-black text-brand-900 mt-2">{responses.length}</p>
+            <p className="text-4xl font-bold text-brand-900 mt-2">{responses.length}</p>
         </div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 md:col-span-2">
            <h4 className="text-sm font-bold text-slate-500 uppercase mb-4">Engagement by Game</h4>

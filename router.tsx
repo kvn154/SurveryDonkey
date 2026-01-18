@@ -186,36 +186,38 @@ const surveySelectionRoute = createRoute({
              <ArrowLeft size={20} /> Back to Admin
            </button>
            
-           <h1 className="text-4xl md:text-5xl font-black text-white text-center mb-4">
-             Choose Your Experience
-           </h1>
-           <p className="text-slate-400 text-center mb-12 text-lg">
-             Participate in the survey "{survey.title}" through one of these games.
-           </p>
+            <h1 className="text-4xl md:text-5xl font-black text-white text-center mb-4">
+              Choose Your Experience
+            </h1>
+            <p className="text-slate-400 text-center mb-12 text-lg">
+              Participate in the survey "{survey.title}" through one of these games.
+            </p>
 
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <button 
-                onClick={() => navigate({ to: '/play/$surveyId/top-tier', params: { surveyId: survey.id } })}
-                className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-8 text-left hover:scale-[1.02] transition-transform group shadow-2xl border border-white/10"
-              >
-                 <div className="bg-white/20 w-12 h-12 rounded-lg flex items-center justify-center mb-6 text-white group-hover:bg-white group-hover:text-purple-600 transition-colors">
-                    <Gamepad2 size={24} />
-                 </div>
-                 <h3 className="text-2xl font-bold text-white mb-2">Top Tier Rank</h3>
-                 <p className="text-indigo-100">Drag and drop items into tiers. Show us what you really value.</p>
-              </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+               {/* Card 1 */}
+               <button 
+                 onClick={() => navigate({ to: '/play/$surveyId/top-tier', params: { surveyId: survey.id } })}
+                 className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-8 text-left hover:scale-[1.02] transition-transform group shadow-2xl border border-white/10"
+               >
+                  <div className="bg-white/20 w-12 h-12 rounded-lg flex items-center justify-center mb-6 text-white group-hover:bg-white group-hover:text-purple-600 transition-colors">
+                     <Gamepad2 size={24} />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-2">Top Tier Rank</h3>
+                  <p className="text-indigo-100">Drag and drop items into tiers. Show us what you really value in this rapid-fire ranking game.</p>
+               </button>
 
-              <button 
-                onClick={() => navigate({ to: '/play/$surveyId/imposter', params: { surveyId: survey.id } })}
-                className="bg-linear-to-br from-emerald-600 to-teal-700 rounded-2xl p-8 text-left hover:scale-[1.02] transition-transform group shadow-2xl border border-white/10"
-              >
-                 <div className="bg-white/20 w-12 h-12 rounded-lg flex items-center justify-center mb-6 text-white group-hover:bg-white group-hover:text-emerald-600 transition-colors">
-                    <Gamepad2 size={24} />
-                 </div>
-                 <h3 className="text-2xl font-bold text-white mb-2">The Imposter</h3>
-                 <p className="text-emerald-100">Blend in with AI bots. Answer survey questions rephrased as game dialogue.</p>
-              </button>
-           </div>
+               {/* Card 2 */}
+               <button 
+                 onClick={() => navigate({ to: '/play/$surveyId/imposter', params: { surveyId: survey.id } })}
+                 className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-8 text-left hover:scale-[1.02] transition-transform group shadow-2xl border border-white/10"
+               >
+                  <div className="bg-white/20 w-12 h-12 rounded-lg flex items-center justify-center mb-6 text-white group-hover:bg-white group-hover:text-emerald-600 transition-colors">
+                     <Gamepad2 size={24} />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-2">The Imposter</h3>
+                  <p className="text-emerald-100">Blend in with AI bots. Answer survey questions rephrased as game dialogue without revealing your identity.</p>
+               </button>
+            </div>
         </div>
       </div>
     );
@@ -238,7 +240,7 @@ const topTierRoute = createRoute({
     return (
       <TopTierRank 
         surveyId={survey.id}
-        questions={survey.questions}
+        gamifiedData={survey.gamifiedData as any}
         onComplete={(rankings, allItems) => {
           localStorage.setItem('last_ranking', JSON.stringify({ rankings, allItems }));
           navigate({ to: '/play/$surveyId/top-tier/results', params: { surveyId: survey.id } });
@@ -302,7 +304,7 @@ const imposterRoute = createRoute({
     return (
       <ImposterGame 
         surveyId={survey.id}
-        questions={survey.questions}
+        gamifiedData={survey.gamifiedData as any}
         onComplete={() => {
           router.invalidate();
           navigate({ to: '/' });
