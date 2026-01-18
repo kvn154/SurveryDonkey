@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Question, SurveyResponse, GamifiedQuestionData } from '../../types';
 import { StorageService } from '../../services/storageService';
-import { Loader2, Play, UserPlus, X, Send, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Loader2, Play, UserPlus, X, Send, CheckCircle2, AlertCircle, Users } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 
 interface Props {
@@ -212,50 +212,67 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
 
   if (phase === 'SETUP') {
     return (
-      <div className="max-w-2xl mx-auto p-8 mt-8 bg-white rounded-xl shadow-xl border border-slate-100">
-        <h1 className="text-3xl font-bold text-brand-900 mb-2">The Imposter</h1>
-        <p className="text-slate-500 mb-8">Gather everyone around this device.</p>
+      <div className="max-w-2xl mx-auto p-10 mt-12 bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 relative overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div className="absolute top-0 right-0 p-6 opacity-5">
+           <Users size={120} />
+        </div>
         
-        {!gameScenario && (
-           <div className="mb-6 bg-red-50 text-red-600 p-4 rounded-lg text-sm font-medium">
-             Warning: This survey hasn't been gamified yet. Go back to Admin and click "AI Gamify".
-           </div>
-        )}
+        <div className="relative z-10">
+           <h1 className="text-4xl font-black text-slate-900 mb-2 tracking-tighter uppercase italic">The Imposter</h1>
+           <p className="text-slate-500 mb-10 font-bold">Gather the team around this device.</p>
+           
+           {!gameScenario && (
+              <div className="mb-8 bg-red-50 text-red-600 p-5 rounded-2xl border-2 border-red-100 text-sm font-black flex items-center gap-3">
+                <AlertCircle size={20} />
+                <span>ERROR: Survey hasn't been gamified. Enable gamification in Admin first.</span>
+              </div>
+           )}
 
-        <div className="mb-8">
-           <label className="block text-sm font-bold text-slate-700 mb-2">Add Players</label>
-           <div className="flex gap-2">
-             <input 
-                type="text" 
-                value={newPlayerName}
-                onChange={e => setNewPlayerName(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && addPlayer()}
-                className="flex-1 border border-slate-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand-500 outline-none bg-white text-slate-900"
-                placeholder="Enter name..."
-             />
-             <button onClick={addPlayer} className="btn-base bg-brand-600 text-white hover:bg-brand-700">
-               <UserPlus />
-             </button>
+           <div className="mb-10">
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Add Player</label>
+              <div className="flex gap-3">
+                <input 
+                   type="text" 
+                   value={newPlayerName}
+                   onChange={e => setNewPlayerName(e.target.value)}
+                   onKeyDown={e => e.key === 'Enter' && addPlayer()}
+                   className="flex-1 border-2 border-slate-100 rounded-2xl px-6 py-4 focus:border-brand-500 outline-none bg-slate-50/50 focus:bg-white text-slate-900 font-bold transition-all placeholder:text-slate-300"
+                   placeholder="Player name..."
+                />
+                <button onClick={addPlayer} className="btn-base bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-100 border-none">
+                  <UserPlus size={20} />
+                </button>
+              </div>
            </div>
+           
+           <div className="flex flex-wrap gap-3 mb-10 min-h-[120px] bg-slate-50/50 p-6 rounded-[2rem] border-2 border-slate-100 shadow-inner items-center content-center">
+              {players.length === 0 && (
+                <div className="flex flex-col items-center justify-center w-full text-slate-400 gap-2">
+                  <Users size={32} className="opacity-20" />
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] italic">Team Empty</p>
+                </div>
+              )}
+              {players.map(p => (
+                <div key={p.id} className="bg-white pl-5 pr-2 py-2 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-3 animate-in fade-in zoom-in duration-300 hover:border-brand-500 transition-colors">
+                  <span className="font-black text-slate-900 text-sm tracking-tight">{p.name}</span>
+                  <button 
+                    onClick={() => removePlayer(p.id)} 
+                    className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all border-none bg-transparent shadow-none"
+                  >
+                    <X size={16}/>
+                  </button>
+                </div>
+              ))}
+           </div>
+           
+           <button 
+             onClick={startGame}
+             disabled={players.length < 3 || !gameScenario}
+             className="btn-hero w-full bg-slate-900 text-white hover:bg-black flex items-center justify-center gap-3 shadow-2xl shadow-slate-200 border-none"
+           >
+             <Play fill="currentColor" size={20} /> START GAME
+           </button>
         </div>
-        
-        <div className="flex flex-wrap gap-3 mb-8 min-h-[100px] bg-slate-50 p-4 rounded-xl border border-slate-100">
-           {players.length === 0 && <p className="text-slate-400 text-sm flex items-center justify-center w-full italic">No players added yet</p>}
-           {players.map(p => (
-             <div key={p.id} className="bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200 flex items-center gap-2 animate-in fade-in zoom-in duration-200">
-               <span className="font-bold text-slate-700">{p.name}</span>
-               <button onClick={() => removePlayer(p.id)} className="text-slate-400 hover:text-red-500 transition-colors"><X size={14}/></button>
-             </div>
-           ))}
-        </div>
-        
-        <button 
-          onClick={startGame}
-          disabled={players.length < 3 || !gameScenario}
-          className="btn-hero w-full bg-brand-900 text-white hover:bg-brand-800 flex items-center justify-center gap-2 shadow-lg"
-        >
-          <Play fill="currentColor" size={20} /> Start Mission
-        </button>
       </div>
     );
   }
@@ -265,7 +282,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
     return (
       <div className="max-w-md mx-auto mt-20 p-8 bg-white rounded-xl shadow-2xl text-center border border-slate-100">
          <div className="mb-8">
-            <span className="bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase">Confidential</span>
+            
          </div>
          
          {!showRole ? (
@@ -501,7 +518,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
          </div>
          
          <div className="bg-brand-50 p-8 rounded-xl border border-brand-100 mb-8">
-            <h3 className="text-brand-900 font-bold text-xl mb-2">Mission Debrief</h3>
+            <h3 className="text-brand-900 font-bold text-xl mb-2">Game Summary</h3>
             <p className="text-brand-700">
                Secret Word: <span className="font-bold">{gameScenario?.secretWord}</span>
             </p>

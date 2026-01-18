@@ -1,7 +1,7 @@
 import React from 'react';
 import { Survey, SurveyResponse } from '../../types';
 import { AnalyticsView } from './AnalyticsView';
-import { FileText, Plus, BarChart2, Trash2, Edit2, Play, Wand2, ChevronRight } from 'lucide-react';
+import { FileText, Plus, BarChart2, Trash2, Edit2, Play, Wand2, ChevronDown } from 'lucide-react';
 
 import { useNavigate } from '@tanstack/react-router';
 
@@ -150,21 +150,22 @@ export const AdminDashboard: React.FC<Props> = ({
             <div>
                <div className="mb-8">
                   <h1 className="text-3xl font-bold text-slate-800 mb-4">Analytics Dashboard</h1>
-                  <div className="relative w-full md:w-auto inline-block">
+                   <div className="relative w-full md:w-auto inline-block">
                     <select 
                       value={currentAnalyticsId}
                       onChange={(e) => navigate({ to: '/analytics/$surveyId', params: { surveyId: e.target.value } })}
-                      className="bg-white border border-slate-300 rounded-lg px-4 py-2 w-full md:w-64 appearance-none font-medium text-slate-700 shadow-sm cursor-pointer"
+                      className="form-select w-full md:w-64"
                     >
                        <option value="" disabled>Select a survey...</option>
                        {surveys.map(s => (
                           <option key={s.id} value={s.id}>{s.title}</option>
                        ))}
                     </select>
-                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-400">
-                       <ChevronRight size={16} className="rotate-90" />
+                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
+                       <ChevronDown size={18} />
                     </div>
                   </div>
+
                </div>
                
                {selectedSurvey ? (
