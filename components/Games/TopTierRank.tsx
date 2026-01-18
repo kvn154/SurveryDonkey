@@ -172,11 +172,11 @@ export const TopTierRank: React.FC<Props> = ({ surveyId, gamifiedData, onComplet
            <button onClick={onQuit} className="p-2 -ml-2 text-slate-400 hover:text-white rounded-full hover:bg-white/10 transition-colors">
               <ArrowLeft size={20} />
            </button>
-           <div>
-              <h2 className="text-lg font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 flex items-center gap-2">
-                 TOP TIER <Star size={16} className="text-yellow-400 fill-yellow-400" />
-              </h2>
-           </div>
+            <div>
+               <h2 className="text-lg font-black italic tracking-tighter text-transparent bg-clip-text bg-linear-to-r from-rank-300 to-rank-500 flex items-center gap-2">
+                  TOP TIER <Star size={16} className="text-yellow-400 fill-yellow-400" />
+               </h2>
+            </div>
         </div>
       </div>
 
@@ -191,11 +191,11 @@ export const TopTierRank: React.FC<Props> = ({ surveyId, gamifiedData, onComplet
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, tier.label)}
                 onClick={() => handleContainerInteraction(tier.label)}
-                className={`
-                   relative flex rounded-lg border-2 transition-all min-h-[90px] group
-                   ${tier.bg} ${tier.border} ${tier.hover}
-                   ${selectedItem && selectedItem.source !== tier.label ? 'ring-2 ring-purple-500/40 cursor-pointer' : ''}
-                `}
+                 className={`
+                    relative flex rounded-lg border-2 transition-all min-h-[90px] group
+                    ${tier.bg} ${tier.border} ${tier.hover}
+                    ${selectedItem && selectedItem.source !== tier.label ? 'ring-2 ring-rank-500/40 cursor-pointer' : ''}
+                 `}
               >
                 <div className={`w-10 md:w-16 flex items-center justify-center text-3xl font-black shrink-0 ${tier.color} bg-black/20 rounded-l-sm`}>
                   {tier.label}
@@ -216,10 +216,10 @@ export const TopTierRank: React.FC<Props> = ({ surveyId, gamifiedData, onComplet
                       onClick={(e) => handleItemInteraction(e, item, tier.label)}
                       draggable
                       onDragStart={(e) => handleDragStart(e, item, tier.label)}
-                      className={`
+                       className={`
                         text-[10px] md:text-xs font-bold bg-slate-800 shadow-sm px-2 py-1.5 rounded flex items-center gap-1 transition-transform active:scale-95 cursor-pointer
                         ${selectedItem?.item.id === item.id 
-                           ? 'border-2 border-purple-500 ring-2 ring-purple-500/50 text-white' 
+                           ? 'border-2 border-rank-500 ring-2 ring-rank-500/50 text-white' 
                            : 'border border-slate-600 text-slate-200 hover:border-slate-500'
                         }
                       `}
@@ -254,7 +254,7 @@ export const TopTierRank: React.FC<Props> = ({ surveyId, gamifiedData, onComplet
                     className={`
                       p-3 rounded-lg border cursor-pointer shadow-sm transition-all active:scale-95 flex flex-col gap-1
                       ${selectedItem?.item.id === item.id 
-                        ? 'bg-purple-900/50 border-purple-500 ring-1 ring-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.2)] z-10' 
+                        ? 'bg-rank-900/50 border-rank-500 ring-1 ring-rank-500 shadow-[0_0_15px_rgba(99,102,241,0.2)] z-10' 
                         : 'bg-slate-800 border-slate-700 hover:border-slate-500 hover:bg-slate-700'
                       }
                     `}
@@ -263,7 +263,7 @@ export const TopTierRank: React.FC<Props> = ({ surveyId, gamifiedData, onComplet
                        <span className={`text-xs font-bold leading-snug ${selectedItem?.item.id === item.id ? 'text-white' : 'text-slate-200'}`}>
                          {item.content}
                        </span>
-                       {selectedItem?.item.id === item.id && <CheckCircle2 size={14} className="text-purple-400 shrink-0" />}
+                       {selectedItem?.item.id === item.id && <CheckCircle2 size={14} className="text-rank-400 shrink-0" />}
                      </div>
                   </div>
                ))}
@@ -276,20 +276,20 @@ export const TopTierRank: React.FC<Props> = ({ surveyId, gamifiedData, onComplet
                )}
             </div>
 
-            <div className="absolute bottom-0 right-0 w-[40%] md:w-[35%] p-4 bg-slate-900/95 border-t border-slate-800 backdrop-blur z-30">
-               <button
-                  onClick={(e) => { e.stopPropagation(); handleNext(); }}
-                  disabled={items.length > 0}
-                  className={`btn-hero w-full flex items-center justify-center gap-2 shadow-lg ${
-                    items.length === 0 
-                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-green-900/20' 
-                      : 'bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700'
-                  }`}
-                >
-                   {items.length === 0 ? 'Finish' : 'Rank All'} 
-                   {items.length === 0 && <ArrowRight size={18} />}
-               </button>
-            </div>
+             <div className="absolute bottom-0 right-0 w-[40%] md:w-[35%] p-4 bg-slate-900/95 border-t border-slate-800 backdrop-blur z-30">
+                <button
+                   onClick={(e) => { e.stopPropagation(); handleNext(); }}
+                   disabled={items.length > 0}
+                   className={`btn-hero w-full flex items-center justify-center gap-2 shadow-lg ${
+                     items.length === 0 
+                       ? 'bg-gradient-to-r from-rank-500 to-rank-600 text-white shadow-rank-900/20' 
+                       : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                   }`}
+                 >
+                    {items.length === 0 ? 'Finish' : 'Rank All'} 
+                    {items.length === 0 && <ArrowRight size={18} />}
+                </button>
+             </div>
          </div>
       </div>
     </div>

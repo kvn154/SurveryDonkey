@@ -176,7 +176,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
               <h2 className="text-2xl font-black text-slate-900 leading-tight">
                 {initialData ? 'Edit Survey' : 'New Survey'}
               </h2>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">Campaign Designer</p>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-[0.2em]">Campaign Designer</p>
            </div>
         </div>
         <div className="flex gap-3">
@@ -196,7 +196,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
       <div className="space-y-8">
          {/* Title Section - High Contrast */}
          <div className="bg-white p-8 rounded-[2rem] border-2 border-slate-100 shadow-sm focus-within:border-brand-500 transition-colors">
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Survey Identification</label>
+            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">Survey Identification</label>
             <input 
               type="text"
               value={survey.title}
@@ -216,7 +216,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
             </button>
             <button 
               onClick={() => setActiveTab('games')}
-              className={`btn-base px-8 flex items-center gap-2 border-none shadow-none ${activeTab === 'games' ? 'bg-white text-purple-600 shadow-sm border border-purple-100' : 'text-slate-500 hover:text-slate-700 bg-transparent hover:bg-white/50'}`}
+              className={`btn-base px-8 flex items-center gap-2 border-none shadow-none ${activeTab === 'games' ? 'bg-white text-brand-600 shadow-sm border border-brand-100' : 'text-slate-500 hover:text-slate-700 bg-transparent hover:bg-white/50'}`}
             >
                <Wand2 size={18} /> Gamification
             </button>
@@ -358,67 +358,67 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
          )}
 
          {/* Games Editor - Improved Contrast */}
-         {activeTab === 'games' && (
-           <div className="animate-in fade-in duration-500">
-              {!survey.gamifiedData ? (
-                 <div className="text-center py-24 bg-white rounded-[4rem] border-2 border-slate-100 shadow-sm flex flex-col items-center">
-                    <div className="bg-purple-50 p-10 rounded-full text-purple-200 mb-10 animate-pulse border border-purple-100">
-                       <Wand2 size={80} />
-                    </div>
-<h3 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">Game Generator Ready</h3>
+          {activeTab === 'games' && (
+            <div className="animate-in fade-in duration-500">
+               {!survey.gamifiedData ? (
+                  <div className="text-center py-24 bg-white rounded-[4rem] border-2 border-slate-100 shadow-sm flex flex-col items-center">
+                     <div className="bg-brand-50 p-10 rounded-full text-brand-200 mb-10 animate-pulse border border-brand-100">
+                        <Wand2 size={80} />
+                     </div>
+                     <h3 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">Game Generator Ready</h3>
                      <p className="text-slate-500 mb-12 max-w-lg mx-auto font-bold leading-relaxed text-lg text-pretty text-center">
                         AI will transform your questions into game content for Top Tier Rank and Imposter.
                      </p>
                      <button 
                        onClick={() => setShowGamifyModal(true)}
-                       className="btn-hero px-16 bg-purple-600 text-white hover:bg-purple-700 shadow-2xl shadow-purple-200 flex items-center gap-4 border-none"
+                       className="btn-hero px-16 bg-brand-600 text-white hover:bg-brand-700 shadow-2xl shadow-brand-200 flex items-center gap-4 border-none"
                      >
                         <Wand2 size={28} /> Generate Games
-                    </button>
-                 </div>
-              ) : (
-                 <div className="space-y-10">
-                    <div className="flex justify-between items-center bg-brand-900 p-8 rounded-[2.5rem] shadow-2xl shadow-brand-100 border border-brand-800 overflow-hidden relative">
-                       <div className="absolute top-0 right-0 p-4 opacity-10">
-                          <BarChart size={120} />
-                       </div>
-                       <div className="flex items-center gap-6 relative z-10">
-                          <div className="bg-brand-800 p-4 rounded-2xl text-brand-200 shadow-inner">
-                             <BarChart size={32} />
-                          </div>
-                          <div>
-<p className="text-white font-black text-xl tracking-tight">Game Content Ready</p>
-                              <p className="text-brand-300 font-bold">Content synced with your questions.</p>
-                          </div>
-                       </div>
-                       <button 
-                          onClick={() => setShowGamifyModal(true)}
-                          className="btn-base bg-white/10 hover:bg-white/20 text-white transition-all backdrop-blur-xl flex items-center gap-2 border border-white/10 relative z-10 shadow-none"
-                       >
-                          <RefreshCw size={18} /> Regenerate
-                       </button>
-                    </div>
+                     </button>
+                  </div>
+               ) : (
+                  <div className="space-y-10">
+                     <div className="flex justify-between items-center bg-brand-50 p-8 rounded-[2.5rem] border-2 border-brand-100 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-5">
+                           <BarChart size={120} className="text-brand-900" />
+                        </div>
+                        <div className="flex items-center gap-6 relative z-10">
+                           <div className="bg-white p-4 rounded-2xl text-brand-600 shadow-sm border border-brand-100">
+                              <BarChart size={32} />
+                           </div>
+                           <div>
+                              <p className="text-brand-900 font-black text-xl tracking-tight">Game Content Ready</p>
+                              <p className="text-brand-600 font-bold">Content synced with your questions.</p>
+                           </div>
+                        </div>
+                        <button 
+                           onClick={() => setShowGamifyModal(true)}
+                           className="btn-base bg-white border border-brand-200 text-brand-600 hover:bg-brand-50 transition-all flex items-center gap-2 relative z-10 shadow-sm"
+                        >
+                           <RefreshCw size={18} /> Regenerate
+                        </button>
+                     </div>
 
-                    <div className="space-y-6">
-                       {(survey.gamifiedData as GamifiedQuestionData[]).map((gData, idx) => (
-                          <div key={idx} className="border-2 border-slate-100 rounded-[3rem] overflow-hidden shadow-sm bg-white hover:border-slate-200 transition-colors">
-                             <div 
-                               onClick={() => setExpandedGameIndex(expandedGameIndex === idx ? null : idx)}
-                               className="bg-slate-50/50 p-8 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition-colors"
-                             >
-                                <div className="flex-1">
-<span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-2">Original Question</span>
-                                    <p className="font-black text-slate-800 text-xl line-clamp-1">{gData.original_question}</p>
-                                </div>
-                                <div className="flex items-center gap-6">
-                                   <div className="flex gap-3">
-                                       {gData.games.top_tier_rank.applicable && (
-                                           <span className="text-[10px] bg-indigo-100 text-indigo-700 px-4 py-1.5 rounded-xl font-black uppercase tracking-widest shadow-sm">Rank</span>
-                                       )}
-                                       {gData.games.imposter_spyfall.applicable && (
-                                           <span className="text-[10px] bg-emerald-100 text-emerald-700 px-4 py-1.5 rounded-xl font-black uppercase tracking-widest shadow-sm">Imposter</span>
-                                       )}
-                                   </div>
+                     <div className="space-y-6">
+                        {(survey.gamifiedData as GamifiedQuestionData[]).map((gData, idx) => (
+                           <div key={idx} className="border-2 border-slate-100 rounded-[3rem] overflow-hidden shadow-sm bg-white hover:border-slate-200 transition-colors">
+                              <div 
+                                onClick={() => setExpandedGameIndex(expandedGameIndex === idx ? null : idx)}
+                                className="bg-slate-50/50 p-8 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition-colors"
+                              >
+                                 <div className="flex-1">
+                                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] block mb-2">Original Question</span>
+                                   <p className="font-black text-slate-800 text-xl line-clamp-1">{gData.original_question}</p>
+                                 </div>
+                                 <div className="flex items-center gap-6">
+                                    <div className="flex gap-3">
+                                        {gData.games.top_tier_rank.applicable && (
+                                            <span className="text-[10px] bg-rank-100 text-rank-600 px-4 py-1.5 rounded-xl font-black uppercase tracking-widest shadow-sm">Rank</span>
+                                        )}
+                                        {gData.games.imposter_spyfall.applicable && (
+                                            <span className="text-[10px] bg-imposter-100 text-imposter-600 px-4 py-1.5 rounded-xl font-black uppercase tracking-widest shadow-sm">Imposter</span>
+                                        )}
+                                    </div>
                                    <div className={`text-slate-400 transition-transform duration-500 ${expandedGameIndex === idx ? 'rotate-180' : ''}`}>
                                       <ChevronDown size={32} />
                                    </div>
@@ -430,21 +430,21 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
                                    {/* Top Tier Editor */}
                                    <div className="bg-slate-50/50 p-8 rounded-[2rem] border border-slate-100">
                                       <div className="flex items-center gap-4 mb-8">
-                                         <div className={`w-5 h-5 rounded-full shadow-inner ring-4 ring-white ${gData.games.top_tier_rank.applicable ? 'bg-green-500 shadow-green-200' : 'bg-slate-300'}`}></div>
-<h4 className="font-black text-slate-900 text-xl tracking-tight">Top Tier Settings</h4>
-                                          <label className="ml-auto flex items-center gap-4 text-xs font-black text-slate-500 cursor-pointer bg-white px-6 py-3 rounded-2xl border-2 border-slate-100 hover:border-brand-500 transition-all shadow-sm">
-                                              <input 
-                                                type="checkbox"
-                                                checked={gData.games.top_tier_rank.applicable}
-                                                onChange={(e) => {
-                                                    const updated = { ...gData };
-                                                    updated.games.top_tier_rank.applicable = e.target.checked;
-                                                    handleUpdateGamifiedData(idx, updated);
-                                                }}
-                                                className="rounded text-brand-600 focus:ring-brand-500 w-5 h-5 transition-all"
-                                              />
-                                              ENABLED
-                                          </label>
+                                         <div className={`w-5 h-5 rounded-full shadow-inner ring-4 ring-white ${gData.games.top_tier_rank.applicable ? 'bg-rank-500 shadow-rank-100' : 'bg-slate-300'}`}></div>
+                                         <h4 className="font-black text-slate-900 text-xl tracking-tight">Top Tier Settings</h4>
+                                         <label className="ml-auto flex items-center gap-4 text-xs font-black text-slate-500 cursor-pointer bg-white px-6 py-3 rounded-2xl border-2 border-slate-100 hover:border-brand-500 transition-all shadow-sm">
+                                             <input 
+                                               type="checkbox"
+                                               checked={gData.games.top_tier_rank.applicable}
+                                               onChange={(e) => {
+                                                   const updated = { ...gData };
+                                                   updated.games.top_tier_rank.applicable = e.target.checked;
+                                                   handleUpdateGamifiedData(idx, updated);
+                                               }}
+                                               className="rounded text-rank-600 focus:ring-rank-500 w-5 h-5 transition-all"
+                                             />
+                                             ENABLED
+                                         </label>
                                       </div>
                                       {gData.games.top_tier_rank.applicable && (
                                          <div className="space-y-8">
@@ -486,26 +486,26 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
                                    {/* Imposter Editor */}
                                    <div className="bg-slate-50/50 p-8 rounded-[2rem] border border-slate-100">
                                       <div className="flex items-center gap-4 mb-8">
-                                         <div className={`w-5 h-5 rounded-full shadow-inner ring-4 ring-white ${gData.games.imposter_spyfall.applicable ? 'bg-green-500 shadow-green-200' : 'bg-slate-300'}`}></div>
-<h4 className="font-black text-slate-900 text-xl tracking-tight">Imposter Settings</h4>
-                                          <label className="ml-auto flex items-center gap-4 text-xs font-black text-slate-500 cursor-pointer bg-white px-6 py-3 rounded-2xl border-2 border-slate-100 hover:border-brand-500 transition-all shadow-sm">
-                                              <input 
-                                                type="checkbox"
-                                                checked={gData.games.imposter_spyfall.applicable}
-                                                onChange={(e) => {
-                                                    const updated = { ...gData };
-                                                    updated.games.imposter_spyfall.applicable = e.target.checked;
-                                                    handleUpdateGamifiedData(idx, updated);
-                                                }}
-                                                className="rounded text-brand-600 focus:ring-brand-500 w-5 h-5 transition-all"
-                                              />
-                                              ENABLED
-                                          </label>
+                                         <div className={`w-5 h-5 rounded-full shadow-inner ring-4 ring-white ${gData.games.imposter_spyfall.applicable ? 'bg-imposter-500 shadow-imposter-100' : 'bg-slate-300'}`}></div>
+                                         <h4 className="font-black text-slate-900 text-xl tracking-tight">Imposter Settings</h4>
+                                         <label className="ml-auto flex items-center gap-4 text-xs font-black text-slate-500 cursor-pointer bg-white px-6 py-3 rounded-2xl border-2 border-slate-100 hover:border-brand-500 transition-all shadow-sm">
+                                             <input 
+                                               type="checkbox"
+                                               checked={gData.games.imposter_spyfall.applicable}
+                                               onChange={(e) => {
+                                                   const updated = { ...gData };
+                                                   updated.games.imposter_spyfall.applicable = e.target.checked;
+                                                   handleUpdateGamifiedData(idx, updated);
+                                               }}
+                                               className="rounded text-imposter-600 focus:ring-imposter-500 w-5 h-5 transition-all"
+                                             />
+                                             ENABLED
+                                         </label>
                                       </div>
                                       {gData.games.imposter_spyfall.applicable && (
                                          <div className="space-y-10">
                                             <div className="max-w-md">
-                                               <label className="block text-[10px] font-black text-brand-600 mb-3 uppercase tracking-[0.2em]">Secret Word</label>
+                                               <label className="block text-[10px] font-black text-imposter-600 mb-3 uppercase tracking-[0.2em]">Secret Word</label>
                                                <input 
                                                  type="text"
                                                  value={gData.games.imposter_spyfall.secret_word}
@@ -523,7 +523,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
                                                    {gData.games.imposter_spyfall.derived_questions.map((iq, iqIdx) => (
                                                    <div key={iqIdx} className="p-8 bg-white rounded-[2.5rem] border-2 border-slate-100 shadow-md relative">
                                                        <div className="mb-8">
-                                                           <label className="text-[9px] font-black text-brand-500 uppercase tracking-[0.3em] block mb-3">QUESTION</label>
+                                                           <label className="text-[9px] font-black text-imposter-600 uppercase tracking-[0.3em] block mb-3">QUESTION</label>
                                                            <input 
                                                                value={iq.question}
                                                                onChange={(e) => {
@@ -538,7 +538,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
                                                        
                                                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
                                                            <div className="lg:col-span-4">
-                                                               <label className="text-[10px] font-black text-slate-400 uppercase mb-3 block tracking-[0.2em]">Response Type</label>
+                                                               <label className="text-[10px] font-black text-slate-500 uppercase mb-3 block tracking-[0.2em]">Response Type</label>
                                                                <div className="relative">
                                                                   <select
                                                                       value={iq.type}
@@ -549,9 +549,9 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
                                                                       }}
                                                                       className="form-select w-full py-4 text-xs"
                                                                   >
-<option value="text">Free Text</option>
-                                                                       <option value="multiple_choice">Multiple Choice</option>
-                                                                       <option value="scale">Scale</option>
+                                                                      <option value="text">Free Text</option>
+                                                                      <option value="multiple_choice">Multiple Choice</option>
+                                                                      <option value="scale">Scale</option>
                                                                   </select>
                                                                   <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
                                                                </div>
@@ -559,7 +559,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
                                                            
                                                            {iq.type !== 'text' && (
                                                                <div className="lg:col-span-8">
-                                                                   <label className="text-[10px] font-black text-slate-400 uppercase mb-3 block tracking-[0.2em]">Options</label>
+                                                                   <label className="text-[10px] font-black text-slate-500 uppercase mb-3 block tracking-[0.2em]">Options</label>
                                                                    <div className="flex flex-wrap gap-3">
                                                                        {(iq.choices_scales || []).map((choice, cIdx) => (
                                                                            <div key={cIdx} className="flex items-center gap-3 bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-2 shadow-sm focus-within:border-brand-500 transition-all">

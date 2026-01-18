@@ -90,17 +90,17 @@ export const AdminDashboard: React.FC<Props> = ({
                             <h3 className="font-bold text-xl text-brand-900 mb-2 truncate">{survey.title}</h3>
                             <p className="text-slate-500 text-sm mb-4">{survey.questions.length} Questions</p>
                             
-                            <div className="flex gap-2 mb-4">
-                               {survey.gamifiedData ? (
-                                 <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full flex items-center gap-1 font-bold">
-                                   <Wand2 size={12}/> Gamified
-                                 </span>
-                               ) : (
-                                 <span className="bg-slate-100 text-slate-500 text-xs px-2 py-1 rounded-full font-bold">
-                                   Standard
-                                 </span>
-                               )}
-                            </div>
+                             <div className="flex gap-2 mb-4">
+                                {survey.gamifiedData ? (
+                                  <span className="bg-brand-100 text-brand-700 text-xs px-2 py-1 rounded-full flex items-center gap-1 font-bold">
+                                    <Wand2 size={12}/> Gamified
+                                  </span>
+                                ) : (
+                                  <span className="bg-slate-200 text-slate-600 text-xs px-2 py-1 rounded-full font-bold">
+                                    Standard
+                                  </span>
+                                )}
+                             </div>
                          </div>
                          
                          <div className="bg-slate-50 px-6 py-4 border-t border-slate-100 flex justify-between items-center">

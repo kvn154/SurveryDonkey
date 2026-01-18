@@ -7,7 +7,7 @@ interface Props {
   responses: SurveyResponse[];
 }
 
-const COLORS = ['#0d9488', '#f59e0b', '#8b5cf6', '#ec4899', '#3b82f6'];
+const COLORS = ['#14b8a6', '#6366f1', '#10b981', '#f59e0b', '#0d9488'];
 
 interface QuestionStat {
   id: string;
@@ -88,7 +88,7 @@ export const AnalyticsView: React.FC<Props> = ({ survey, responses }) => {
                    <XAxis type="number" hide />
                    <YAxis dataKey="name" type="category" width={80} />
                    <Tooltip />
-                   <Bar dataKey="value" fill="#0d9488" radius={[0, 4, 4, 0]} barSize={20} />
+                    <Bar dataKey="value" fill="#14b8a6" radius={[0, 4, 4, 0]} barSize={20} />
                 </BarChart>
              </ResponsiveContainer>
            </div>
@@ -106,38 +106,38 @@ export const AnalyticsView: React.FC<Props> = ({ survey, responses }) => {
                       <XAxis dataKey="name" fontSize={12} tickLine={false} />
                       <YAxis />
                       <Tooltip />
-                       <Bar dataKey="score" fill="#8884d8">
-                        {qs.data.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-               ) : (
-                 <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={qs.data}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name || 'Unknown'} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {qs.data.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
+                        <Bar dataKey="score" fill="#14b8a6">
+                         {qs.data.map((_, index) => (
+                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                         ))}
+                       </Bar>
+                     </BarChart>
+                   </ResponsiveContainer>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                     <PieChart>
+                       <Pie
+                         data={qs.data}
+                         cx="50%"
+                         cy="50%"
+                         labelLine={false}
+                         label={({ name, percent }) => `${name || 'Unknown'} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                         outerRadius={80}
+                         fill="#14b8a6"
+                         dataKey="value"
+                       >
+                         {qs.data.map((_, index) => (
+                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                         ))}
+                       </Pie>
 
-                      <Tooltip />
-                    </PieChart>
-                 </ResponsiveContainer>
+                       <Tooltip />
+                     </PieChart>
+                  </ResponsiveContainer>
                )}
             </div>
             {qs.type === 'RANKING' && (
-               <p className="text-xs text-center text-slate-400 mt-2">Aggregated weighted score (S-tier = 5pts)</p>
+               <p className="text-xs text-center text-slate-500 mt-2">Aggregated weighted score (S-tier = 5pts)</p>
             )}
           </div>
         ))}
