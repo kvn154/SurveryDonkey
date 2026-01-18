@@ -126,7 +126,7 @@ export const gamifySurvey = async (
     `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
       config: {
         systemInstruction: GAMIFICATION_SYSTEM_PROMPT + "\n\nIMPORTANT: You must return a JSON array containing exactly " + questions.length + " objects. One for each input question in order.",
