@@ -135,38 +135,72 @@ const routes = app
       where: eq(responses.surveyId, id),
     });
 
-    const rankingQuestions = survey.questions.filter(q => q.type === 'RANKING');
+    // 1. Aggregate ALL possible concepts that could have been ranked
+    const allConcepts = new Set<string>();
     
-    // For simplicity, we'll calculate consensus based on the first ranking question found
-    // In a multi-question survey, we might need a more complex UI
-    const targetQ = rankingQuestions[0];
-    if (!targetQ) return c.json([]);
-
-    const options = targetQ.options as string[];
-    const tierCounts: Record<string, Record<string, number>> = {};
-    
-    options.forEach(opt => {
-      tierCounts[opt] = { S: 0, A: 0, B: 0, C: 0, D: 0 };
+    // Standard questions
+    survey.questions.forEach(q => {
+      if (q.type === 'RANKING' && Array.isArray(q.options)) {
+        q.options.forEach(opt => allConcepts.add(opt));
+      }
     });
 
-    const totalResponses = allResponses.filter(r => r.gamePlayed === 'TOP_TIER').length;
-    if (totalResponses === 0) return c.json([]);
+    // Gamified data
+    if (survey.gamifiedData && Array.isArray(survey.gamifiedData)) {
+      survey.gamifiedData.forEach((g: any) => {
+        if (g.games?.top_tier_rank?.applicable && Array.isArray(g.games.top_tier_rank.concepts)) {
+          g.games.top_tier_rank.concepts.forEach((c: string) => allConcepts.add(c));
+        }
+      });
+    }
 
-    allResponses.forEach(r => {
-      if (r.gamePlayed !== 'TOP_TIER') return;
-      const answer = r.answers[targetQ.id] as Record<string, string[]>;
-      if (!answer) return;
+    if (allConcepts.size === 0) return c.json([]);
 
-      Object.entries(answer).forEach(([tier, optedItems]) => {
-        optedItems.forEach(opt => {
-          if (tierCounts[opt]) {
-            tierCounts[opt][tier] = (tierCounts[opt][tier] || 0) + 1;
+    const tierCounts: Record<string, Record<string, number>> = {};
+    allConcepts.forEach(concept => {
+      tierCounts[concept] = { S: 0, A: 0, B: 0, C: 0, D: 0 };
+    });
+
+    const topTierResponses = allResponses.filter(r => r.gamePlayed === 'TOP_TIER');
+    if (topTierResponses.length === 0) return c.json([]);
+
+    // 2. Count placements across all responses
+    topTierResponses.forEach(r => {
+      const answers = r.answers as Record<string, any>;
+      
+      // Case A: Gamified rankings (new UI)
+      if (answers.gamified_rankings) {
+        Object.entries(answers.gamified_rankings).forEach(([tier, items]) => {
+          if (Array.isArray(items)) {
+            items.forEach(item => {
+              if (tierCounts[item]) {
+                tierCounts[item][tier] = (tierCounts[item][tier] || 0) + 1;
+              }
+            });
           }
         });
+      }
+
+      // Case B: Question-specific rankings (old/standard UI)
+      survey.questions.forEach(q => {
+        if (q.type === 'RANKING' && answers[q.id]) {
+          const qAnswer = answers[q.id];
+          if (typeof qAnswer === 'object' && !Array.isArray(qAnswer)) {
+            Object.entries(qAnswer).forEach(([tier, items]) => {
+              if (Array.isArray(items)) {
+                items.forEach(item => {
+                  if (tierCounts[item]) {
+                    tierCounts[item][tier] = (tierCounts[item][tier] || 0) + 1;
+                  }
+                });
+              }
+            });
+          }
+        }
       });
     });
 
-    // Determine consensus tier for each item
+    // 3. Determine consensus tier for each concept
     const results: any[] = [
       { tier: 'S', items: [], percentage: 0 },
       { tier: 'A', items: [], percentage: 0 },
@@ -175,24 +209,32 @@ const routes = app
       { tier: 'D', items: [], percentage: 0 },
     ];
 
-    options.forEach((opt, idx) => {
-      const counts = tierCounts[opt];
-      let maxCount = -1;
+    Array.from(allConcepts).forEach((concept, idx) => {
+      const counts = tierCounts[concept];
+      let maxCount = 0;
       let consensusTier = 'C';
+      let totalPlacementsForItem = 0;
       
       Object.entries(counts).forEach(([tier, count]) => {
+        totalPlacementsForItem += count;
         if (count > maxCount) {
           maxCount = count;
           consensusTier = tier;
         }
       });
 
-      const tierGroup = results.find(r => r.tier === consensusTier);
-      tierGroup.items.push({ id: `q1_${idx}`, content: opt });
-      // Average percentage across items in this tier? 
-      // Actually, percentage per item would be better, but the UI expects it per tier group.
-      // Let's just use the maxCount/total for that item.
-      tierGroup.percentage = Math.round((maxCount / totalResponses) * 100);
+      if (totalPlacementsForItem > 0) {
+        const tierGroup = results.find(r => r.tier === consensusTier);
+        tierGroup.items.push({ id: `c_${idx}`, content: concept });
+        
+        // Calculate agreement percentage for this specific item
+        const itemAgreement = Math.round((maxCount / totalPlacementsForItem) * 100);
+        // We update the group percentage if this item has higher agreement, 
+        // or we could use average. Let's use average for the group or just 
+        // return it per item if the UI supported it. 
+        // For now, let's keep the existing UI format but make it meaningful.
+        tierGroup.percentage = Math.max(tierGroup.percentage, itemAgreement);
+      }
     });
 
     return c.json(results);
