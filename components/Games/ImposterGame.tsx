@@ -77,7 +77,12 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
 
   const addPlayer = () => {
     if (!newPlayerName.trim()) return;
-    setPlayers([...players, { id: crypto.randomUUID(), name: newPlayerName.trim(), isImposter: false }]);
+    const newPlayer: Player = { 
+      id: `p_${Math.random().toString(36).substring(2, 11)}`, 
+      name: newPlayerName.trim(), 
+      isImposter: false 
+    };
+    setPlayers([...players, newPlayer]);
     setNewPlayerName('');
   };
 

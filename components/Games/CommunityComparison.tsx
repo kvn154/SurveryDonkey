@@ -222,7 +222,6 @@ export const CommunityComparison: React.FC<ComparisonProps> = ({
               </button>
               <div>
                  <h1 className="text-2xl font-bold tracking-tight">Community Consensus</h1>
-                 <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Post-Mission Debrief</p>
               </div>
            </div>
            
@@ -426,7 +425,7 @@ export const CommunityComparison: React.FC<ComparisonProps> = ({
              <div className="bg-brand-900/40 rounded-xl border border-brand-500/20 p-6 text-center">
                 <TrendingUp size={32} className="text-brand-400 mx-auto mb-3" />
                 <h4 className="font-bold text-sm mb-2">Drive the Consensus</h4>
-                <p className="text-xs text-brand-200/70 mb-5 leading-relaxed font-medium">Your data contributes to the global consensus for this mission.</p>
+                <p className="text-xs text-brand-200/70 mb-5 leading-relaxed font-medium">Your data contributes to the global consensus for this survey.</p>
                 <button 
                    onClick={onBack}
                    className="w-full py-2 bg-brand-500 text-brand-900 font-black rounded-lg text-xs uppercase tracking-widest hover:bg-brand-400 transition-all active:scale-95"

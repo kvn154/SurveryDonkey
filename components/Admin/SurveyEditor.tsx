@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Question, Survey, GamifiedQuestionData } from '../../types';
 import { StorageService } from '../../services/storageService';
-import { Plus, Trash2, Save, X, Wand2, Loader2, GripVertical, ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react';
+import { Plus, Trash2, Save, X, Wand2, Loader2, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Props {
   initialData?: Survey;
@@ -16,11 +16,13 @@ const DEFAULT_QUESTION: Omit<Question, 'id' | 'surveyId'> = {
   assignedGame: 'BOTH'
 };
 
+const generateTempId = () => `temp_${Math.random().toString(36).substring(2, 11)}`;
+
 export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel }) => {
   const [survey, setSurvey] = useState<Partial<Survey>>(
     initialData || {
       title: '',
-      questions: [{ ...DEFAULT_QUESTION, id: crypto.randomUUID() } as any],
+      questions: [{ ...DEFAULT_QUESTION, id: generateTempId() } as any],
       gamifiedData: undefined
     }
   );
@@ -48,7 +50,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
   const handleAddQuestion = () => {
     setSurvey(prev => ({
       ...prev,
-      questions: [...(prev.questions || []), { ...DEFAULT_QUESTION, id: crypto.randomUUID() } as any]
+      questions: [...(prev.questions || []), { ...DEFAULT_QUESTION, id: generateTempId() } as any]
     }));
   };
 
@@ -118,6 +120,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel })
         gamifiedData: survey.gamifiedData,
         questions: (survey.questions || []).map(q => ({
           ...q,
+          id: q.id?.startsWith('temp_') ? undefined : q.id,
           options: q.options || []
         }))
       };
