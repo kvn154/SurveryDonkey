@@ -76,11 +76,11 @@ export const AnalyticsView: React.FC<Props> = ({ survey, responses }) => {
   return (
     <div className="space-y-8 animate-fadeIn">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
            <h4 className="text-sm font-bold text-slate-500 uppercase">Total Responses</h4>
             <p className="text-4xl font-bold text-brand-900 mt-2">{responses.length}</p>
         </div>
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 md:col-span-2">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 md:col-span-2">
            <h4 className="text-sm font-bold text-slate-500 uppercase mb-4">Engagement by Game</h4>
            <div className="h-40 w-full flex gap-8 items-center">
              <ResponsiveContainer width="100%" height="100%">
@@ -97,7 +97,7 @@ export const AnalyticsView: React.FC<Props> = ({ survey, responses }) => {
 
       <div className="space-y-6">
         {stats.questionStats.map((qs) => (
-          <div key={qs.id} className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+          <div key={qs.id} className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
             <h3 className="text-lg font-bold text-slate-800 mb-4">{qs.text}</h3>
             <div className="h-64 w-full">
                {qs.type === 'RANKING' ? (

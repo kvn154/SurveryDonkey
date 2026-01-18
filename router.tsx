@@ -193,31 +193,31 @@ const surveySelectionRoute = createRoute({
               Participate in the survey "{survey.title}" through one of these games.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-               {/* Card 1 */}
-               <button 
-                 onClick={() => navigate({ to: '/play/$surveyId/top-tier', params: { surveyId: survey.id } })}
-                 className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-8 text-left hover:scale-[1.02] transition-transform group shadow-2xl border border-white/10"
-               >
-                  <div className="bg-white/20 w-12 h-12 rounded-lg flex items-center justify-center mb-6 text-white group-hover:bg-white group-hover:text-purple-600 transition-colors">
-                     <Gamepad2 size={24} />
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-2">Top Tier Rank</h3>
-                  <p className="text-indigo-100">Drag and drop items into tiers. Show us what you really value in this rapid-fire ranking game.</p>
-               </button>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Card 1 */}
+                <button 
+                  onClick={() => navigate({ to: '/play/$surveyId/top-tier', params: { surveyId: survey.id } })}
+                  className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-[2.5rem] p-10 text-left hover:scale-[1.02] transition-transform group shadow-2xl border border-white/10"
+                >
+                   <div className="bg-white/20 w-14 h-14 rounded-2xl flex items-center justify-center mb-8 text-white group-hover:bg-white group-hover:text-purple-600 transition-colors shadow-inner">
+                      <Gamepad2 size={28} />
+                   </div>
+                   <h3 className="text-3xl font-black text-white mb-3 tracking-tight">Top Tier Rank</h3>
+                   <p className="text-indigo-100 font-bold leading-relaxed">Drag and drop items into tiers. Show us what you really value in this rapid-fire ranking game.</p>
+                </button>
 
-               {/* Card 2 */}
-               <button 
-                 onClick={() => navigate({ to: '/play/$surveyId/imposter', params: { surveyId: survey.id } })}
-                 className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-8 text-left hover:scale-[1.02] transition-transform group shadow-2xl border border-white/10"
-               >
-                  <div className="bg-white/20 w-12 h-12 rounded-lg flex items-center justify-center mb-6 text-white group-hover:bg-white group-hover:text-emerald-600 transition-colors">
-                     <Gamepad2 size={24} />
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-2">The Imposter</h3>
-                  <p className="text-emerald-100">Blend in with AI bots. Answer survey questions rephrased as game dialogue without revealing your identity.</p>
-               </button>
-            </div>
+                {/* Card 2 */}
+                <button 
+                  onClick={() => navigate({ to: '/play/$surveyId/imposter', params: { surveyId: survey.id } })}
+                  className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-[2.5rem] p-10 text-left hover:scale-[1.02] transition-transform group shadow-2xl border border-white/10"
+                >
+                   <div className="bg-white/20 w-14 h-14 rounded-2xl flex items-center justify-center mb-8 text-white group-hover:bg-white group-hover:text-emerald-600 transition-colors shadow-inner">
+                      <Gamepad2 size={28} />
+                   </div>
+                   <h3 className="text-3xl font-black text-white mb-3 tracking-tight">The Imposter</h3>
+                   <p className="text-emerald-100 font-bold leading-relaxed">Blend in with AI bots. Answer survey questions rephrased as game dialogue without revealing your identity.</p>
+                </button>
+             </div>
         </div>
       </div>
     );

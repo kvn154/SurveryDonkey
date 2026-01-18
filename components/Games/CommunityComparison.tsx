@@ -200,7 +200,7 @@ export const CommunityComparison: React.FC<ComparisonProps> = ({
            </p>
            <button 
              onClick={onBack}
-             className="mt-8 px-8 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-all font-bold"
+             className="btn-lg mt-8 bg-slate-800 hover:bg-slate-700 text-white"
            >
              Back to Ranking
            </button>
@@ -216,7 +216,7 @@ export const CommunityComparison: React.FC<ComparisonProps> = ({
            <div className="flex items-center gap-4">
               <button
                 onClick={onBack}
-                className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors bg-slate-900 p-2 rounded-lg border border-slate-800 shadow-inner"
+                className="btn-sm flex items-center justify-center text-slate-500 hover:text-white bg-slate-900 border border-slate-800 shadow-inner"
               >
                 <ArrowLeft size={20} />
               </button>
@@ -227,7 +227,7 @@ export const CommunityComparison: React.FC<ComparisonProps> = ({
            
            <button
              onClick={handleShare}
-             className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg transition-all shadow-lg shadow-purple-900/20 font-bold active:scale-95 text-sm"
+             className="btn-base flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-800/20 active:scale-95 transition-all font-semibold"
            >
              <Share2 size={18} />
              <span>Share Rankings</span>
@@ -428,9 +428,9 @@ export const CommunityComparison: React.FC<ComparisonProps> = ({
                 <p className="text-xs text-brand-200/70 mb-5 leading-relaxed font-medium">Your data contributes to the global consensus for this survey.</p>
                 <button 
                    onClick={onBack}
-                   className="w-full py-2 bg-brand-500 text-brand-900 font-black rounded-lg text-xs uppercase tracking-widest hover:bg-brand-400 transition-all active:scale-95"
+                   className="btn-base w-full bg-brand-500 text-brand-900 font-black uppercase tracking-widest hover:bg-brand-400"
                 >
-                   Finish Mission
+                   Finish Survey
                 </button>
              </div>
           </div>

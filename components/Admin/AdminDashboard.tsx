@@ -33,27 +33,35 @@ export const AdminDashboard: React.FC<Props> = ({
   return (
     <div className="min-h-screen bg-slate-50 relative flex flex-col">
        {/* Top Navigation */}
-       <header className="bg-brand-900 text-white shadow-md sticky top-0 z-40">
+       <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
              <div className="flex justify-between items-center h-16">
                 <div className="flex items-center gap-3">
-                   <div className="w-8 h-8 bg-accent-500 rounded-lg flex items-center justify-center font-bold text-brand-900 shadow-inner">
+                   <div className="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center font-bold text-white shadow-lg shadow-brand-200">
                       D
                    </div>
-                   <span className="font-bold text-xl tracking-tight">SurveyDonkey</span>
+                   <span className="font-bold text-xl tracking-tight text-slate-900">SurveyDonkey</span>
                 </div>
-                <nav className="flex gap-4">
+                
+                <nav 
+                   className="nav-toggle" 
+                   data-active={activeTab === 'surveys' ? 'manage' : 'analytics'}
+                >
+                   <div className="nav-toggle__indicator" />
+                   
                    <button 
                      onClick={() => navigate({ to: '/' })}
-                     className={`flex items-center gap-2 px-3 py-1 rounded-md transition-colors ${activeTab === 'surveys' ? 'bg-brand-700 text-white' : 'text-brand-200 hover:text-white'}`}
+                     className="nav-toggle__label"
+                     data-active={activeTab === 'surveys'}
                    >
-                      <FileText size={18} /> Manage
+                      <FileText size={16} /> Manage
                    </button>
                    <button 
                      onClick={() => navigate({ to: '/analytics' })}
-                     className={`flex items-center gap-2 px-3 py-1 rounded-md transition-colors ${activeTab === 'analytics' ? 'bg-brand-700 text-white' : 'text-brand-200 hover:text-white'}`}
+                     className="nav-toggle__label"
+                     data-active={activeTab === 'analytics'}
                    >
-                      <BarChart2 size={18} /> Analytics
+                      <BarChart2 size={16} /> Analytics
                    </button>
                 </nav>
              </div>
@@ -67,7 +75,7 @@ export const AdminDashboard: React.FC<Props> = ({
                    <h1 className="text-3xl font-bold text-slate-800">Your Surveys</h1>
                    <button 
                      onClick={onCreateSurvey} 
-                     className="bg-brand-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-brand-700 transition-all shadow-lg shadow-brand-100 font-bold cursor-pointer active:scale-95"
+                     className="btn-base bg-brand-600 text-white flex items-center gap-2 hover:bg-brand-700 shadow-lg shadow-brand-100"
                    >
                       <Plus size={18} />
                       <span>New Survey</span>
@@ -100,21 +108,21 @@ export const AdminDashboard: React.FC<Props> = ({
                                {survey.gamifiedData && (
                                   <button 
                                     onClick={() => onSelectSurvey(survey.id)}
-                                    className="bg-brand-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-brand-700 flex items-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
+                                    className="btn-sm bg-brand-600 text-white flex items-center gap-1 hover:bg-brand-700 shadow-sm"
                                   >
                                     <Play size={14} fill="currentColor" /> Play
                                   </button>
                                )}
                                <button 
                                  onClick={() => onEditSurvey(survey.id)}
-                                 className="text-slate-600 font-bold hover:text-brand-600 text-sm flex items-center gap-1 px-2 py-1 transition-colors cursor-pointer"
+                                 className="btn-sm bg-white border border-slate-200 text-slate-600 flex items-center gap-1 hover:bg-slate-50 hover:text-brand-600"
                                >
                                   <Edit2 size={14} /> Edit
                                </button>
                             </div>
                             <button 
                               onClick={() => onDeleteSurvey(survey.id)} 
-                              className="text-red-400 hover:text-red-600 transition-colors p-1.5 cursor-pointer"
+                              className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                               title="Delete Survey"
                             >
                                <Trash2 size={16} />

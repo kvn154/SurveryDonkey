@@ -233,7 +233,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
                 className="flex-1 border border-slate-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand-500 outline-none bg-white text-slate-900"
                 placeholder="Enter name..."
              />
-             <button onClick={addPlayer} className="bg-brand-600 text-white px-6 rounded-lg hover:bg-brand-700 transition-colors">
+             <button onClick={addPlayer} className="btn-base bg-brand-600 text-white hover:bg-brand-700">
                <UserPlus />
              </button>
            </div>
@@ -252,7 +252,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
         <button 
           onClick={startGame}
           disabled={players.length < 3 || !gameScenario}
-          className="w-full bg-brand-900 text-white py-4 rounded-xl font-bold text-xl disabled:opacity-50 hover:bg-brand-800 transition-colors flex items-center justify-center gap-2 shadow-lg"
+          className="btn-hero w-full bg-brand-900 text-white hover:bg-brand-800 flex items-center justify-center gap-2 shadow-lg"
         >
           <Play fill="currentColor" size={20} /> Start Mission
         </button>
@@ -275,7 +275,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
              <p className="text-slate-400 mb-8">Tap below to reveal your secret identity. Make sure no one else is looking.</p>
              <button 
                onClick={() => setShowRole(true)}
-               className="w-full bg-slate-800 text-white py-4 rounded-xl font-bold text-lg hover:bg-slate-900 shadow-lg transition-all"
+               className="btn-hero w-full bg-slate-800 text-white hover:bg-slate-900 shadow-lg"
              >
                Reveal Identity
              </button>
@@ -299,7 +299,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
              )}
              <button 
                onClick={handleNextReveal}
-               className="w-full bg-brand-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-brand-700 shadow-lg transition-all"
+               className="btn-hero w-full bg-brand-600 text-white hover:bg-brand-700 shadow-lg"
              >
                Got it
              </button>
@@ -374,7 +374,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
                     <button 
                         onClick={() => submitAnswer(answerText)}
                         disabled={!answerText}
-                        className="w-full bg-brand-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-brand-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg"
+                        className="btn-hero w-full bg-brand-600 text-white hover:bg-brand-700 shadow-lg flex items-center justify-center gap-2"
                     >
                         Confirm Selection <Send size={18} />
                     </button>
@@ -455,7 +455,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
 
         <button 
           onClick={handleNextRound}
-          className="w-full bg-black text-white py-4 rounded-xl font-bold text-xl hover:bg-slate-800 shadow-lg flex items-center justify-center gap-2 transition-colors"
+          className="btn-hero w-full bg-black text-white hover:bg-slate-800 shadow-lg flex items-center justify-center gap-2"
         >
           {currentQuestionIdx < gameScenario!.questions.length - 1 ? 'Next Question' : 'Proceed to Voting'} <Play size={20} fill="currentColor"/>
         </button>
@@ -482,7 +482,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, gamifiedData, onComple
 
          <button 
            onClick={() => handleVote()}
-           className="bg-red-600 text-white px-12 py-4 rounded-full font-bold text-2xl hover:bg-red-700 shadow-xl transition-transform hover:scale-105"
+           className="btn-hero bg-red-600 text-white px-12 hover:bg-red-700 shadow-xl"
          >
            Reveal Truth
          </button>

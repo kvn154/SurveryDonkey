@@ -276,18 +276,18 @@ export const TopTierRank: React.FC<Props> = ({ surveyId, gamifiedData, onComplet
                )}
             </div>
 
-            <div className="absolute bottom-0 right-0 w-[40%] md:w-[35%] p-3 bg-slate-900/95 border-t border-slate-800 backdrop-blur z-30">
+            <div className="absolute bottom-0 right-0 w-[40%] md:w-[35%] p-4 bg-slate-900/95 border-t border-slate-800 backdrop-blur z-30">
                <button
                   onClick={(e) => { e.stopPropagation(); handleNext(); }}
                   disabled={items.length > 0}
-                  className={`w-full py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-1 shadow-lg ${
+                  className={`btn-hero w-full flex items-center justify-center gap-2 shadow-lg ${
                     items.length === 0 
-                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:scale-[1.02] shadow-green-900/20' 
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-green-900/20' 
                       : 'bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700'
                   }`}
                 >
                    {items.length === 0 ? 'Finish' : 'Rank All'} 
-                   {items.length === 0 && <ArrowRight size={14} />}
+                   {items.length === 0 && <ArrowRight size={18} />}
                </button>
             </div>
          </div>
