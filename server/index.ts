@@ -263,9 +263,10 @@ const routes = app
   });
 
 // Static Files
-app.use('/assets/*', serveStatic({ root: './dist' }));
-app.get('/favicon.ico', serveStatic({ path: './public/logo.png' }));
-app.get('/logo.png', serveStatic({ path: './public/logo.png' }));
+const distPath = join(process.cwd(), 'dist');
+app.use('/assets/*', serveStatic({ root: distPath }));
+app.get('/favicon.ico', serveStatic({ path: join(distPath, 'logo.png') }));
+app.get('/logo.png', serveStatic({ path: join(distPath, 'logo.png') }));
 
 // SPA Catch-all
 app.get('*', async (c) => {
