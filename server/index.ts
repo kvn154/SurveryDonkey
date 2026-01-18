@@ -264,7 +264,8 @@ const routes = app
 
 // Static Files
 app.use('/assets/*', serveStatic({ root: './dist' }));
-app.get('/favicon.ico', serveStatic({ path: './dist/favicon.ico' }));
+app.get('/favicon.ico', serveStatic({ path: './public/logo.png' }));
+app.get('/logo.png', serveStatic({ path: './public/logo.png' }));
 
 // SPA Catch-all
 app.get('*', async (c) => {

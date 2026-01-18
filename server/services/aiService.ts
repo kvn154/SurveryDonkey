@@ -47,6 +47,12 @@ Analyze the input questions (contextualized by a Company Name and Product Descri
 *   **Safety:** Do not invent sensitive personal data.
 
 NOTE: BE SMART and add the company name on either the question of the answers (but not for imposter)
+
+SCALE QUESTION GUIDELINES:
+When generating scale-type questions, always output the full range of step choices in the JSON.
+For example, if the scale is from 1 to 10, your output should explicitly include each number as an individual option:
+ ["1 (Slow)", "2", "3", "4", "5", "6", "7", "8", "9", "10 (Fast)"].
+Make sure no steps are skipped and the options are clear and sequential.
 `;
 
 const RESPONSE_SCHEMA: Schema = {
@@ -134,6 +140,10 @@ export const gamifySurvey = async (
         responseSchema: RESPONSE_SCHEMA
       }
     });
+
+    if (!response) {
+      throw new Error("AI API returned undefined response");
+    }
 
     const text = response.text;
     console.log("AI RAW RESPONSE:", text);

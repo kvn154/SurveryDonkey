@@ -37,9 +37,11 @@ export const AdminDashboard: React.FC<Props> = ({
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
              <div className="flex justify-between items-center h-16">
                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center font-bold text-white shadow-sm">
-                       D
-                    </div>
+                    <img 
+                      src="/logo.png" 
+                      alt="SurveyDonkey Logo" 
+                      className="w-9 h-9 rounded-xl shadow-sm object-contain"
+                    />
                     <span className="font-bold text-xl tracking-tight text-slate-900">SurveyDonkey</span>
                  </div>
                 
