@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Question, SurveyResponse, TierItem, TierLevel, GamifiedQuestionData } from '../../types';
+import { SurveyResponse, TierItem, TierLevel, GamifiedQuestionData } from '../../types';
 import { StorageService } from '../../services/storageService';
-import { Star, ArrowRight, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Star, ArrowRight, CheckCircle2, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
 
 interface Props {
   surveyId: string;
-  questions: Question[];
   gamifiedData?: GamifiedQuestionData[];
-  onComplete: (rankings: Record<TierLevel, TierItem[]>, items: TierItem[]) => void;
+  onComplete: (rankings: Record<TierLevel, TierItem[]>, allItems: TierItem[]) => void;
   onQuit: () => void;
 }
 
@@ -19,59 +19,48 @@ const TIERS: { label: TierLevel; color: string; bg: string; border: string; hove
   { label: 'D', color: 'text-slate-300', bg: 'bg-slate-800/20', border: 'border-slate-500/20', hover: 'hover:bg-slate-800/40' },
 ];
 
-export const TopTierRank: React.FC<Props> = ({ surveyId, questions, gamifiedData, onComplete, onQuit }) => {
-  
-  // 1. Prepare Items derived from Gamified Data OR fallback to raw questions
+export const TopTierRank: React.FC<Props> = ({ surveyId, gamifiedData, onComplete, onQuit }) => {
   const [items, setItems] = useState<TierItem[]>([]);
-  const [activePrompt, setActivePrompt] = useState<string>("Rank these items based on your preference");
-
-  useEffect(() => {
-    let generatedItems: TierItem[] = [];
-    
-    if (gamifiedData) {
-      // Aggregate all applicable concepts
-      gamifiedData.forEach((gData, idx) => {
-        if (gData.games.top_tier_rank.applicable) {
-          // Use the first prompt found from the first applicable question as the main game title
-          if(generatedItems.length === 0 && gData.games.top_tier_rank.derived_questions.length > 0) {
-             setActivePrompt(gData.games.top_tier_rank.derived_questions[0]);
-          }
-
-          gData.games.top_tier_rank.concepts.forEach((concept, cIdx) => {
-            generatedItems.push({
-              id: `g_${idx}_${cIdx}`,
-              content: concept,
-            });
-          });
-        }
-      });
-    }
-
-    // Fallback to legacy ranking questions if no gamified data
-    if (generatedItems.length === 0) {
-      const rankingQuestions = questions.filter(q => q.type === 'RANKING');
-      generatedItems = rankingQuestions.flatMap(q => 
-        q.options?.map((option, index) => ({
-          id: `${q.id}_${index}`,
-          content: option,
-        })) || []
-      );
-    }
-
-    setItems(generatedItems);
-    setStartTime(Date.now());
-  }, [gamifiedData, questions]);
-
   const [placements, setPlacements] = useState<Record<TierLevel, TierItem[]>>({
     S: [], A: [], B: [], C: [], D: []
   });
   const [startTime, setStartTime] = useState(Date.now());
+  const [activePrompt, setActivePrompt] = useState<string>("Rank these items based on your preference");
+  const [hasError, setHasError] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{ item: TierItem, source: 'pool' | TierLevel } | null>(null);
+
+  useEffect(() => {
+    if (gamifiedData && gamifiedData.length > 0) {
+      const validGames = gamifiedData.filter(g => g.games.top_tier_rank.applicable);
+      
+      if (validGames.length > 0) {
+        // Use the first prompt found from the first applicable question as the main game title
+        const foundPrompt = validGames[0].games.top_tier_rank.derived_questions[0] || "Rank these items by preference";
+        
+        const generatedItems: TierItem[] = validGames.flatMap((gData, idx) => 
+          gData.games.top_tier_rank.concepts.map((concept, cIdx) => ({
+            id: `g_${idx}_${cIdx}`,
+            content: concept,
+          }))
+        );
+
+        if (generatedItems.length > 0) {
+          setItems(generatedItems);
+          setActivePrompt(foundPrompt);
+          setPlacements({ S: [], A: [], B: [], C: [], D: [] });
+          setStartTime(Date.now());
+          setHasError(false);
+          return;
+        }
+      }
+    }
+
+    setHasError(true);
+  }, [gamifiedData]);
 
   const moveItem = (item: TierItem, fromSource: 'pool' | TierLevel, toTarget: 'pool' | TierLevel) => {
     if (fromSource === toTarget) return;
 
-    // 1. Remove from Source
     if (fromSource === 'pool') {
       setItems(prev => prev.filter(i => i.id !== item.id));
     } else {
@@ -81,7 +70,6 @@ export const TopTierRank: React.FC<Props> = ({ surveyId, questions, gamifiedData
       }));
     }
 
-    // 2. Add to Target
     if (toTarget === 'pool') {
        setItems(prev => [...prev, item]);
     } else {
@@ -136,37 +124,48 @@ export const TopTierRank: React.FC<Props> = ({ surveyId, questions, gamifiedData
 
   const handleNext = () => {
     const currentRankings = Object.entries(placements).reduce((acc, [tier, tierItems]) => {
-      acc[tier as TierLevel] = tierItems.map(i => ({
-        id: i.id,
-        content: i.content,
-      }));
+      acc[tier] = (tierItems as TierItem[]).map(i => i.content);
       return acc;
-    }, {} as Record<TierLevel, TierItem[]>);
+    }, {} as Record<string, string[]>);
 
-    const allRankedItems = Object.values(currentRankings).flat();
+    const allRankedItems = Object.values(placements).flat();
 
-    const response: SurveyResponse = {
-      id: crypto.randomUUID(),
-      surveyId,
-      gamePlayed: 'TOP_TIER',
-      timestamp: Date.now(),
-      answers: {
-        rankings: currentRankings,
-        items: allRankedItems,
-      },
-      metadata: {
-        duration: (Date.now() - startTime) / 1000,
-        playerType: 'REAL',
-      }
-    };
-
-    StorageService.saveResponse(response);
-    onComplete(currentRankings, allRankedItems);
+    const response: Omit<SurveyResponse, 'id' | 'timestamp'> = {
+        surveyId,
+        gamePlayed: 'TOP_TIER',
+        answers: { gamified_rankings: currentRankings },
+        metadata: {
+          duration: (Date.now() - startTime) / 1000,
+          playerType: 'REAL'
+        }
+      };
+      
+      StorageService.saveResponse(response).then(() => {
+        onComplete(placements, items.concat(allRankedItems));
+      }).catch(err => {
+        console.error("Save failed", err);
+        onComplete(placements, items.concat(allRankedItems)); 
+      });
   };
+
+  if (hasError) {
+    return (
+      <div className="h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-8">
+        <AlertCircle size={64} className="text-red-500 mb-6" />
+        <h1 className="text-3xl font-bold mb-4 uppercase tracking-tighter italic text-red-500">Error: Game Data Not Ready</h1>
+        <p className="text-slate-400 text-center max-w-md mb-8">No gamified content available for Top Tier Rank. Please ensure gamification is enabled in Admin.</p>
+        <Link 
+          to="/" 
+          className="bg-white text-slate-950 px-8 py-3 rounded-xl font-bold hover:bg-slate-200 transition-all shadow-lg shadow-white/10"
+        >
+          Back to Dashboard
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen bg-slate-950 text-white flex flex-col font-sans overflow-hidden select-none">
-      
       {/* Header */}
       <div className="flex-none px-4 py-3 border-b border-slate-800 bg-slate-900/80 backdrop-blur z-20 flex justify-between items-center">
         <div className="flex items-center gap-3">
@@ -174,9 +173,9 @@ export const TopTierRank: React.FC<Props> = ({ surveyId, questions, gamifiedData
               <ArrowLeft size={20} />
            </button>
            <div>
-             <h2 className="text-lg font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 flex items-center gap-2">
-                TOP TIER <Star size={16} className="text-yellow-400 fill-yellow-400" />
-             </h2>
+              <h2 className="text-lg font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 flex items-center gap-2">
+                 TOP TIER <Star size={16} className="text-yellow-400 fill-yellow-400" />
+              </h2>
            </div>
         </div>
       </div>
@@ -189,28 +188,28 @@ export const TopTierRank: React.FC<Props> = ({ surveyId, questions, gamifiedData
             {TIERS.map((tier) => (
               <div 
                 key={tier.label}
-                onClick={() => handleContainerInteraction(tier.label)}
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, tier.label)}
+                onClick={() => handleContainerInteraction(tier.label)}
                 className={`
                    relative flex rounded-lg border-2 transition-all min-h-[90px] group
                    ${tier.bg} ${tier.border} ${tier.hover}
                    ${selectedItem && selectedItem.source !== tier.label ? 'ring-2 ring-purple-500/40 cursor-pointer' : ''}
                 `}
               >
-                {selectedItem && (
+                <div className={`w-10 md:w-16 flex items-center justify-center text-3xl font-black shrink-0 ${tier.color} bg-black/20 rounded-l-sm`}>
+                  {tier.label}
+                </div>
+                
+                {selectedItem && selectedItem.source !== tier.label && (
                   <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur font-bold">
+                    <span className="bg-black/70 text-white text-[10px] px-2 py-1 rounded backdrop-blur font-bold uppercase tracking-widest border border-white/20">
                       Place Here
                     </span>
                   </div>
                 )}
 
-                <div className={`w-10 md:w-16 flex items-center justify-center text-3xl font-black shrink-0 ${tier.color} bg-black/20 rounded-l-sm`}>
-                  {tier.label}
-                </div>
-                
-                <div className="flex-1 p-1.5 flex flex-wrap content-start gap-1.5">
+                <div className="flex-1 p-1.5 flex flex-wrap content-start gap-1.5 relative z-20">
                   {placements[tier.label].map(item => (
                     <div 
                       key={item.id}
@@ -218,7 +217,7 @@ export const TopTierRank: React.FC<Props> = ({ surveyId, questions, gamifiedData
                       draggable
                       onDragStart={(e) => handleDragStart(e, item, tier.label)}
                       className={`
-                        text-[10px] md:text-xs font-bold bg-slate-800 shadow-sm px-2 py-1.5 rounded flex items-center gap-1 z-20 cursor-pointer active:scale-95 transition-transform
+                        text-[10px] md:text-xs font-bold bg-slate-800 shadow-sm px-2 py-1.5 rounded flex items-center gap-1 transition-transform active:scale-95 cursor-pointer
                         ${selectedItem?.item.id === item.id 
                            ? 'border-2 border-purple-500 ring-2 ring-purple-500/50 text-white' 
                            : 'border border-slate-600 text-slate-200 hover:border-slate-500'
@@ -235,9 +234,9 @@ export const TopTierRank: React.FC<Props> = ({ surveyId, questions, gamifiedData
 
          {/* RIGHT: Item Pool (Source) */}
          <div 
-            onClick={() => handleContainerInteraction('pool')}
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, 'pool')}
+            onClick={() => handleContainerInteraction('pool')}
             className="w-[40%] md:w-[35%] h-full bg-slate-950 flex flex-col border-l border-slate-800 shadow-2xl z-10"
          >
             <div className="p-3 bg-slate-900 border-b border-slate-800">
@@ -287,8 +286,9 @@ export const TopTierRank: React.FC<Props> = ({ surveyId, questions, gamifiedData
                       : 'bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700'
                   }`}
                 >
-                    {items.length === 0 && <ArrowRight size={14} />}
-                </button>
+                   {items.length === 0 ? 'Finish' : 'Rank All'} 
+                   {items.length === 0 && <ArrowRight size={14} />}
+               </button>
             </div>
          </div>
       </div>

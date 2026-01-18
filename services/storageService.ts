@@ -1,110 +1,119 @@
-import { Survey, SurveyResponse, Question, QuestionType } from '../types';
+import { client } from './apiClient';
+import { Survey, SurveyResponse, Question } from '../types';
 
-const STORAGE_KEYS = {
-  SURVEYS: 'sg_surveys',
-  RESPONSES: 'sg_responses',
-};
-
-// Seed data
-const DEFAULT_SURVEY: Survey = {
-  id: 'cs-survey-2025',
-  title: 'Customer Support Experience',
-  createdAt: Date.now(),
-  questions: [
-    {
-      id: 'q_rank_1',
-      text: 'Rank these aspects of our customer support by importance to you',
-      type: QuestionType.RANKING,
-      assignedGame: 'TOP_TIER',
-      options: ['Response Speed', 'Agent Friendliness', 'Technical Knowledge', 'Issue Resolution', '24/7 Availability'],
-    },
-    {
-      id: 'q_cs_1',
-      text: 'How satisfied are you with the overall customer service experience?',
-      type: QuestionType.SINGLE_CHOICE,
-      assignedGame: 'IMPOSTER',
-      options: ['Extremely Satisfied', 'Satisfied', 'Neutral', 'Dissatisfied', 'Extremely Dissatisfied'],
-    }
-  ],
-};
 
 export const StorageService = {
-  getSurveys: (): Survey[] => {
-    const data = localStorage.getItem(STORAGE_KEYS.SURVEYS);
-    if (!data) {
-      localStorage.setItem(STORAGE_KEYS.SURVEYS, JSON.stringify([DEFAULT_SURVEY]));
-      return [DEFAULT_SURVEY];
+  getSurveys: async (): Promise<Survey[]> => {
+    const res = await client.api.surveys.$get();
+    if (!res.ok) {
+      console.error('Failed to fetch surveys');
+      return [];
     }
-    return JSON.parse(data);
+    const data = await res.json();
+    return (data as Survey[]) || [];
   },
 
-  saveSurvey: (survey: Survey) => {
-    const surveys = StorageService.getSurveys();
-    const index = surveys.findIndex(s => s.id === survey.id);
-    if (index >= 0) {
-      surveys[index] = survey;
-    } else {
-      surveys.push(survey);
+  getSurveyById: async (id: string): Promise<Survey | null> => {
+    const res = await client.api.surveys[':id'].$get({
+      param: { id }
+    });
+    if (!res.ok) {
+      console.error('Failed to fetch survey by ID');
+      return null;
     }
-    localStorage.setItem(STORAGE_KEYS.SURVEYS, JSON.stringify(surveys));
+    const data = await res.json();
+    return (data as Survey) || null;
   },
 
-  deleteSurvey: (id: string) => {
-    const surveys = StorageService.getSurveys().filter(s => s.id !== id);
-    localStorage.setItem(STORAGE_KEYS.SURVEYS, JSON.stringify(surveys));
-  },
-
-  getResponses: (): SurveyResponse[] => {
-    const data = localStorage.getItem(STORAGE_KEYS.RESPONSES);
-    return data ? JSON.parse(data) : [];
-  },
-
-  saveResponse: (response: SurveyResponse) => {
-    const responses = StorageService.getResponses();
-    responses.push(response);
-    localStorage.setItem(STORAGE_KEYS.RESPONSES, JSON.stringify(responses));
-  },
-  
-  // Helper to generate some fake data for analytics visualization
-  seedFakeData: () => {
-    const responses: SurveyResponse[] = [];
-    const surveys = StorageService.getSurveys();
-    
-    // Only seed if empty
-    if(localStorage.getItem(STORAGE_KEYS.RESPONSES)) return;
-
-    // Top Tier Fake Data
-    for(let i=0; i<20; i++) {
-        responses.push({
-            id: `fake-tt-${i}`,
-            surveyId: 'cs-survey-2025',
-            gamePlayed: 'TOP_TIER',
-            timestamp: Date.now() - Math.floor(Math.random() * 1000000000),
-            answers: {
-                'q_rank_1': {
-                    'S': ['Issue Resolution'],
-                    'A': ['Response Speed'],
-                    'B': ['Technical Knowledge'],
-                    'C': ['Agent Friendliness'],
-                    'D': ['24/7 Availability']
-                }
-            },
-            metadata: { duration: 45 + Math.random() * 30, playerType: 'REAL' }
-        })
+  getResponses: async (): Promise<SurveyResponse[]> => {
+    const res = await client.api.responses.$get();
+    if (!res.ok) {
+      console.error('Failed to fetch responses');
+      return [];
     }
-     // Imposter Fake Data
-     for(let i=0; i<15; i++) {
-        responses.push({
-            id: `fake-imp-${i}`,
-            surveyId: 'cs-survey-2025',
-            gamePlayed: 'IMPOSTER',
-            timestamp: Date.now() - Math.floor(Math.random() * 1000000000),
-            answers: {
-                'q_cs_1': 'Satisfied'
-            },
-            metadata: { duration: 120, playerType: 'REAL' }
-        })
+    const data = await res.json();
+    return (data as SurveyResponse[]) || [];
+  },
+
+  getConsensus: async (surveyId: string) => {
+    const res = await client.api.surveys[':id'].consensus.$get({
+      param: { id: surveyId }
+    });
+    if (!res.ok) {
+      console.error('Failed to fetch consensus');
+      return [];
     }
-    localStorage.setItem(STORAGE_KEYS.RESPONSES, JSON.stringify(responses));
-  }
+    return await res.json();
+  },
+
+  deleteSurvey: async (id: string) => {
+    const res = await client.api.surveys[':id'].$delete({
+      param: { id }
+    });
+    if (!res.ok) {
+      console.error('Failed to delete survey');
+      throw new Error('Delete failed');
+    }
+    return await res.json();
+  },
+
+  createSurvey: async (survey: { title: string; questions: Omit<Question, 'id' | 'surveyId'>[]; gamifiedData?: any }) => {
+    const res = await client.api.surveys.$post({
+      json: survey as any // Cast to any because Omit might not perfectly match the validator's strict requirements
+    });
+    if (!res.ok) {
+      const error = await res.text();
+      console.error('Failed to create survey:', error);
+      throw new Error('Create failed');
+    }
+    return await res.json();
+  },
+
+  updateSurvey: async (id: string, survey: { title: string; questions: Omit<Question, 'id' | 'surveyId'>[]; gamifiedData?: any }) => {
+    const res = await client.api.surveys[':id'].$put({
+      param: { id },
+      json: survey as any
+    });
+    if (!res.ok) {
+      const error = await res.text();
+      console.error('Failed to update survey:', error);
+      throw new Error('Update failed');
+    }
+    return await res.json();
+  },
+
+  saveResponse: async (response: Omit<SurveyResponse, 'id' | 'timestamp'>) => {
+    const res = await client.api.responses.$post({
+      json: {
+        surveyId: response.surveyId,
+        gamePlayed: response.gamePlayed,
+        answers: response.answers as Record<string, unknown>,
+        metadata: response.metadata,
+      }
+    });
+
+    if (!res.ok) {
+      console.error('Failed to save response');
+      throw new Error('Save failed');
+    }
+
+    return await res.json();
+  },
+  gamifySurvey: async (companyName: string, productDescription: string, questions: Question[]) => {
+    // Clean questions for AI processing
+    const cleanedQuestions = questions.map(q => ({
+        text: q.text,
+        type: q.type,
+        options: q.options || [],
+        assignedGame: q.assignedGame || 'BOTH'
+    }));
+
+    const res = await client.api.ai.gamify.$post({
+      json: { companyName, productDescription, questions: cleanedQuestions as any }
+    });
+    if (!res.ok) {
+        throw new Error("Gamification failed");
+    }
+    return await res.json();
+  },
 };

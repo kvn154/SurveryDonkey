@@ -1,62 +1,73 @@
 import React, { useState } from 'react';
-import { Survey, Question, QuestionType, GamifiedQuestionData } from '../../types';
-import { Plus, Trash2, Save, X, Wand2, Loader2, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
-import { gamifySurvey } from '../../services/geminiService';
+import { Question, Survey, GamifiedQuestionData } from '../../types';
+import { StorageService } from '../../services/storageService';
+import { Plus, Trash2, Save, X, Wand2, Loader2, GripVertical, ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react';
 
 interface Props {
-  initialSurvey?: Survey | null;
-  onSave: (survey: Survey) => void;
+  initialData?: Survey;
+  onSave: () => void;
   onCancel: () => void;
 }
 
-const DEFAULT_QUESTION: Question = {
-  id: '',
+const DEFAULT_QUESTION: Omit<Question, 'id' | 'surveyId'> = {
   text: '',
-  type: QuestionType.OPEN_ENDED,
-  options: []
+  type: 'OPEN_ENDED',
+  options: [],
+  assignedGame: 'BOTH'
 };
 
-export const SurveyEditor: React.FC<Props> = ({ initialSurvey, onSave, onCancel }) => {
-  const [survey, setSurvey] = useState<Survey>(
-    initialSurvey || {
-      id: crypto.randomUUID(),
+export const SurveyEditor: React.FC<Props> = ({ initialData, onSave, onCancel }) => {
+  const [survey, setSurvey] = useState<Partial<Survey>>(
+    initialData || {
       title: '',
-      questions: [{ ...DEFAULT_QUESTION, id: crypto.randomUUID() }],
-      createdAt: Date.now()
+      questions: [{ ...DEFAULT_QUESTION, id: crypto.randomUUID() } as any],
+      gamifiedData: undefined
     }
   );
 
+  const [isSaving, setIsSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<'questions' | 'games'>('questions');
+  
   // Gamification Modal State
   const [showGamifyModal, setShowGamifyModal] = useState(false);
   const [companyName, setCompanyName] = useState('');
   const [productDesc, setProductDesc] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  
-  // UI State
-  const [activeTab, setActiveTab] = useState<'questions' | 'games'>('questions');
   const [expandedGameIndex, setExpandedGameIndex] = useState<number | null>(0);
 
   const handleUpdateSurvey = (field: keyof Survey, value: any) => {
     setSurvey(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleUpdateQuestion = (index: number, field: keyof Question, value: any) => {
-    const updatedQuestions = [...survey.questions];
+  const handleUpdateQuestion = (index: number, field: string, value: any) => {
+    const updatedQuestions = [...(survey.questions || [])];
     updatedQuestions[index] = { ...updatedQuestions[index], [field]: value };
     setSurvey(prev => ({ ...prev, questions: updatedQuestions }));
   };
 
-  // --- Option Management for Original Questions ---
+  const handleAddQuestion = () => {
+    setSurvey(prev => ({
+      ...prev,
+      questions: [...(prev.questions || []), { ...DEFAULT_QUESTION, id: crypto.randomUUID() } as any]
+    }));
+  };
+
+  const handleRemoveQuestion = (index: number) => {
+    setSurvey(prev => ({
+      ...prev,
+      questions: (prev.questions || []).filter((_, i) => i !== index)
+    }));
+  };
 
   const handleAddOption = (qIndex: number) => {
-    const updatedQuestions = [...survey.questions];
+    const updatedQuestions = [...(survey.questions || [])];
     const currentOptions = updatedQuestions[qIndex].options || [];
     updatedQuestions[qIndex] = { ...updatedQuestions[qIndex], options: [...currentOptions, ''] };
     setSurvey(prev => ({ ...prev, questions: updatedQuestions }));
   };
 
   const handleOptionChange = (qIndex: number, optIndex: number, value: string) => {
-    const updatedQuestions = [...survey.questions];
+    const updatedQuestions = [...(survey.questions || [])];
     const currentOptions = [...(updatedQuestions[qIndex].options || [])];
     currentOptions[optIndex] = value;
     updatedQuestions[qIndex] = { ...updatedQuestions[qIndex], options: currentOptions };
@@ -64,7 +75,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialSurvey, onSave, onCancel 
   };
 
   const handleRemoveOption = (qIndex: number, optIndex: number) => {
-    const updatedQuestions = [...survey.questions];
+    const updatedQuestions = [...(survey.questions || [])];
     const currentOptions = updatedQuestions[qIndex].options || [];
     updatedQuestions[qIndex] = { 
         ...updatedQuestions[qIndex], 
@@ -73,28 +84,12 @@ export const SurveyEditor: React.FC<Props> = ({ initialSurvey, onSave, onCancel 
     setSurvey(prev => ({ ...prev, questions: updatedQuestions }));
   };
 
-  // -----------------------------------------------
-
-  const handleAddQuestion = () => {
-    setSurvey(prev => ({
-      ...prev,
-      questions: [...prev.questions, { ...DEFAULT_QUESTION, id: crypto.randomUUID() }]
-    }));
-  };
-
-  const handleRemoveQuestion = (index: number) => {
-    setSurvey(prev => ({
-      ...prev,
-      questions: prev.questions.filter((_, i) => i !== index)
-    }));
-  };
-
   const handleGamify = async () => {
     if (!companyName || !productDesc) return;
     setIsProcessing(true);
     try {
-      const data = await gamifySurvey(companyName, productDesc, survey.questions);
-      setSurvey(prev => ({ ...prev, gamifiedData: data }));
+      const data = await StorageService.gamifySurvey(companyName, productDesc, survey.questions as any);
+      setSurvey(prev => ({ ...prev, gamifiedData: data as any }));
       setShowGamifyModal(false);
       setActiveTab('games');
     } catch (e) {
@@ -106,30 +101,60 @@ export const SurveyEditor: React.FC<Props> = ({ initialSurvey, onSave, onCancel 
 
   const handleUpdateGamifiedData = (index: number, newData: GamifiedQuestionData) => {
       if(!survey.gamifiedData) return;
-      const updated = [...survey.gamifiedData];
+      const updated = [...(survey.gamifiedData as GamifiedQuestionData[])];
       updated[index] = newData;
       setSurvey(prev => ({ ...prev, gamifiedData: updated }));
   };
 
+  const handleSave = async () => {
+    if (!survey.title?.trim()) {
+      alert("Please enter a survey title");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const surveyData = {
+        title: survey.title,
+        gamifiedData: survey.gamifiedData,
+        questions: (survey.questions || []).map(q => ({
+          ...q,
+          options: q.options || []
+        }))
+      };
+
+      if (initialData?.id) {
+        await StorageService.updateSurvey(initialData.id, surveyData as any);
+      } else {
+        await StorageService.createSurvey(surveyData as any);
+      }
+      onSave();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save survey");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
-      {/* Header */}
+    <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6">
+      {/* Sticky Header */}
       <div className="bg-slate-50 border-b border-slate-200 p-6 flex justify-between items-center sticky top-0 z-10">
         <div>
            <h2 className="text-2xl font-bold text-slate-800">
-             {initialSurvey ? 'Edit Survey' : 'New Survey'}
+             {initialData ? 'Edit Survey' : 'New Survey'}
            </h2>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
            <button onClick={onCancel} className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-200 rounded-lg">
              Cancel
            </button>
            <button 
-             onClick={() => onSave(survey)}
-             disabled={!survey.title || survey.questions.some(q => !q.text)}
+             onClick={handleSave}
+             disabled={isSaving || !survey.title || survey.questions?.some(q => !q.text)}
              className="bg-brand-600 text-white px-6 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-brand-700 disabled:opacity-50"
            >
-             <Save size={18} /> Save Survey
+             {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Save Survey
            </button>
         </div>
       </div>
@@ -165,8 +190,8 @@ export const SurveyEditor: React.FC<Props> = ({ initialSurvey, onSave, onCancel 
          {/* Questions Editor */}
          {activeTab === 'questions' && (
            <div className="space-y-6">
-              {survey.questions.map((q, idx) => (
-                 <div key={q.id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 relative group">
+              {(survey.questions || []).map((q, idx) => (
+                 <div key={q.id || idx} className="bg-slate-50 p-4 rounded-xl border border-slate-200 relative group">
                     <div className="flex gap-4 mb-4">
                        <div className="mt-3 text-slate-400 cursor-move"><GripVertical size={20}/></div>
                        <div className="flex-1">
@@ -174,6 +199,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialSurvey, onSave, onCancel 
                              <label className="text-xs font-bold text-slate-500 uppercase">Question {idx + 1}</label>
                              <button onClick={() => handleRemoveQuestion(idx)} className="text-slate-300 hover:text-red-500"><Trash2 size={16}/></button>
                           </div>
+                          
                           <input 
                              type="text"
                              value={q.text}
@@ -190,14 +216,27 @@ export const SurveyEditor: React.FC<Props> = ({ initialSurvey, onSave, onCancel 
                                   onChange={e => handleUpdateQuestion(idx, 'type', e.target.value)}
                                   className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
                                 >
-                                   <option value={QuestionType.OPEN_ENDED}>Open Ended</option>
-                                   <option value={QuestionType.SINGLE_CHOICE}>Single Choice</option>
-                                   <option value={QuestionType.RANKING}>Ranking</option>
-                                   <option value={QuestionType.LIKERT}>Likert Scale</option>
+                                   <option value="OPEN_ENDED">Open Ended</option>
+                                   <option value="SINGLE_CHOICE">Single Choice</option>
+                                   <option value="RANKING">Ranking</option>
+                                   <option value="LIKERT">Likert Scale</option>
+                                </select>
+                             </div>
+
+                             <div className="w-full md:w-1/3">
+                                <label className="block text-xs font-bold text-slate-500 mb-1">Assign to Game</label>
+                                <select 
+                                  value={q.assignedGame || 'BOTH'}
+                                  onChange={e => handleUpdateQuestion(idx, 'assignedGame', e.target.value)}
+                                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
+                                >
+                                   <option value="BOTH">Both Games</option>
+                                   <option value="TOP_TIER">Top Tier Rank Only</option>
+                                   <option value="IMPOSTER">The Imposter Only</option>
                                 </select>
                              </div>
                              
-                             {(q.type === QuestionType.SINGLE_CHOICE || q.type === QuestionType.RANKING) && (
+                             {(q.type === 'SINGLE_CHOICE' || q.type === 'RANKING') && (
                                <div className="flex-1 bg-white p-3 rounded-lg border border-slate-200">
                                   <label className="block text-xs font-bold text-slate-500 mb-2">Options</label>
                                   <div className="space-y-2">
@@ -246,7 +285,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialSurvey, onSave, onCancel 
                  <div className="text-center py-12 bg-slate-50 rounded-xl border border-slate-200">
                     <Wand2 size={48} className="mx-auto text-purple-300 mb-4" />
                     <h3 className="text-xl font-bold text-slate-700 mb-2">Not Gamified Yet</h3>
-                    <p className="text-slate-500 mb-6">Generate game content using Gemini AI based on your questions.</p>
+                    <p className="text-slate-500 mb-6 font-medium">Generate game content using Gemini AI based on your questions.</p>
                     <button 
                       onClick={() => setShowGamifyModal(true)}
                       className="bg-purple-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-purple-700 inline-flex items-center gap-2 shadow-lg transition-transform hover:scale-105"
@@ -264,11 +303,11 @@ export const SurveyEditor: React.FC<Props> = ({ initialSurvey, onSave, onCancel 
                           onClick={() => setShowGamifyModal(true)}
                           className="bg-white text-purple-600 border border-purple-200 px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-purple-50 flex items-center gap-1 transition-colors"
                        >
-                          <Wand2 size={14} /> Regenerate
+                          <RefreshCw size={14} /> Regenerate
                        </button>
                     </div>
 
-                    {survey.gamifiedData.map((gData, idx) => (
+                    {(survey.gamifiedData as GamifiedQuestionData[]).map((gData, idx) => (
                        <div key={idx} className="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white">
                           <div 
                             onClick={() => setExpandedGameIndex(expandedGameIndex === idx ? null : idx)}
@@ -292,12 +331,12 @@ export const SurveyEditor: React.FC<Props> = ({ initialSurvey, onSave, onCancel 
                           </div>
 
                           {expandedGameIndex === idx && (
-                             <div className="p-4 bg-white border-t border-slate-200 space-y-8">
+                             <div className="p-4 bg-white border-t border-slate-200 space-y-8 animate-in slide-in-from-top-2 duration-300">
                                 {/* Top Tier Editor */}
                                 <div>
                                    <div className="flex items-center gap-2 mb-3">
                                       <div className={`w-3 h-3 rounded-full ${gData.games.top_tier_rank.applicable ? 'bg-green-500' : 'bg-slate-300'}`}></div>
-                                      <h4 className="font-bold text-slate-800">Top Tier Rank Data</h4>
+                                      <h4 className="font-bold text-slate-800 text-sm">Top Tier Rank Data</h4>
                                       <label className="ml-auto flex items-center gap-2 text-xs font-medium cursor-pointer">
                                           <input 
                                             type="checkbox"
@@ -352,7 +391,7 @@ export const SurveyEditor: React.FC<Props> = ({ initialSurvey, onSave, onCancel 
                                 <div>
                                    <div className="flex items-center gap-2 mb-3">
                                       <div className={`w-3 h-3 rounded-full ${gData.games.imposter_spyfall.applicable ? 'bg-green-500' : 'bg-slate-300'}`}></div>
-                                      <h4 className="font-bold text-slate-800">Imposter Data</h4>
+                                      <h4 className="font-bold text-slate-800 text-sm">Imposter Data</h4>
                                       <label className="ml-auto flex items-center gap-2 text-xs font-medium cursor-pointer">
                                           <input 
                                             type="checkbox"
@@ -443,22 +482,22 @@ export const SurveyEditor: React.FC<Props> = ({ initialSurvey, onSave, onCancel 
                                                                                     updated.games.imposter_spyfall.derived_questions[iqIdx].choices_scales = current.filter((_, i) => i !== cIdx);
                                                                                     handleUpdateGamifiedData(idx, updated);
                                                                                 }}
-                                                                                className="text-slate-400 hover:text-red-500"
+                                                                                className="text-slate-300 hover:text-red-500"
                                                                             >
-                                                                                <X size={12}/>
+                                                                                <X size={14} />
                                                                             </button>
                                                                         </div>
                                                                     ))}
                                                                     <button 
                                                                         onClick={() => {
                                                                             const updated = { ...gData };
-                                                                            const current = updated.games.imposter_spyfall.derived_questions[iqIdx].choices_scales || [];
-                                                                            updated.games.imposter_spyfall.derived_questions[iqIdx].choices_scales = [...current, ''];
+                                                                            const choices = [...(updated.games.imposter_spyfall.derived_questions[iqIdx].choices_scales || []), ''];
+                                                                            updated.games.imposter_spyfall.derived_questions[iqIdx].choices_scales = choices;
                                                                             handleUpdateGamifiedData(idx, updated);
                                                                         }}
-                                                                        className="text-[10px] text-brand-600 font-bold flex items-center gap-1 mt-1"
+                                                                        className="text-[10px] font-bold text-brand-600 hover:underline flex items-center gap-1"
                                                                     >
-                                                                        <Plus size={10}/> Add Choice
+                                                                        <Plus size={12}/> Add Choice
                                                                     </button>
                                                                 </div>
                                                             </div>
@@ -481,59 +520,78 @@ export const SurveyEditor: React.FC<Props> = ({ initialSurvey, onSave, onCancel 
          )}
       </div>
 
-       {/* Internal Gamification Modal */}
-       {showGamifyModal && (
-         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl p-8 max-w-lg w-full shadow-2xl animate-in zoom-in duration-200">
-               <h2 className="text-2xl font-bold text-slate-800 mb-2 flex items-center gap-2">
-                 <Wand2 className="text-purple-600"/> AI Gamification
-               </h2>
-               <p className="text-slate-500 mb-6">
-                 Gemini will analyze your questions and convert them into game assets.
-               </p>
-
-               <div className="space-y-4 mb-6">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Company Name</label>
-                    <input 
-                      type="text" 
-                      className="w-full border border-slate-300 rounded-lg px-4 py-2 bg-white"
-                      placeholder="e.g. Acme Corp"
-                      value={companyName}
-                      onChange={e => setCompanyName(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Product Description</label>
-                    <textarea 
-                      className="w-full border border-slate-300 rounded-lg px-4 py-2 h-24 bg-white"
-                      placeholder="e.g. A cloud-based project management tool for creative teams..."
-                      value={productDesc}
-                      onChange={e => setProductDesc(e.target.value)}
-                    />
-                  </div>
-               </div>
-
-               <div className="flex justify-end gap-3">
-                  <button 
-                    onClick={() => setShowGamifyModal(false)}
-                    className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-100 rounded-lg"
-                    disabled={isProcessing}
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    onClick={handleGamify}
-                    disabled={isProcessing || !companyName || !productDesc}
-                    className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-lg font-bold flex items-center gap-2 hover:opacity-90 disabled:opacity-50"
-                  >
-                    {isProcessing ? <Loader2 className="animate-spin" /> : <Wand2 size={16} />}
-                    {isProcessing ? 'Generating...' : 'Gamify'}
-                  </button>
-               </div>
+      {/* Gamify Modal */}
+      {showGamifyModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl p-8 max-w-lg w-full shadow-2xl animate-in zoom-in duration-200 border border-slate-200">
+            <div className="bg-purple-100 w-12 h-12 rounded-lg flex items-center justify-center mb-6 text-purple-600">
+              <Wand2 size={24} />
             </div>
-         </div>
-       )}
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">AI Gamification</h2>
+            <p className="text-slate-500 mb-8 text-sm">Gemini will analyze your questions and convert them into game assets.</p>
+
+            <div className="space-y-6 mb-8">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Company Name</label>
+                <input 
+                  type="text" 
+                  value={companyName}
+                  onChange={e => setCompanyName(e.target.value)}
+                  placeholder="e.g. Acme Corp"
+                  className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 outline-none transition-all font-bold"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Product Description</label>
+                <textarea 
+                  value={productDesc}
+                  onChange={e => setProductDesc(e.target.value)}
+                  placeholder="What does your product do?"
+                  rows={3}
+                  className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 outline-none transition-all font-medium text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setShowGamifyModal(false)}
+                className="flex-1 py-2 text-slate-500 font-bold hover:bg-slate-50 rounded-lg transition-colors text-sm"
+                disabled={isProcessing}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleGamify}
+                disabled={isProcessing || !companyName || !productDesc}
+                className="flex-[2] bg-purple-600 text-white py-2 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-purple-700 disabled:opacity-50 transition-all shadow-lg text-sm"
+              >
+                {isProcessing ? <Loader2 className="animate-spin" size={18} /> : <Wand2 size={18} />}
+                {isProcessing ? 'Generating...' : 'Gamify'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
+const RefreshCw = ({ size, className }: { size?: number, className?: string }) => (
+  <svg 
+    width={size || 24} 
+    height={size || 24} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+    <path d="M3 3v5h5" />
+    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+    <path d="M16 16h5v5" />
+  </svg>
+);

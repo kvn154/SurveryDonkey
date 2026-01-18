@@ -1,0 +1,1 @@
+ALTER TABLE "surveys" ADD COLUMN "gamified_data" jsonb;
