@@ -113,7 +113,7 @@ export const gamifySurvey = async (
 ): Promise<GamifiedQuestionData[]> => {
   try {
     const ai = getAiClient();
-    
+
     // Prepare the input prompt
     const questionsList = questions.map(q => `Q: ${q.text}`).join('\n');
     const userPrompt = `
@@ -129,7 +129,7 @@ export const gamifySurvey = async (
       model: 'gemini-3-flash-preview',
       contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
       config: {
-        systemInstruction: GAMIFICATION_SYSTEM_PROMPT + "\n\nIMPORTANT: You must return a JSON array containing exactly " + questions.length + " objects. One for each input question in order.",
+        systemInstruction: GAMIFICATION_SYSTEM_PROMPT,
         responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA
       }
@@ -138,9 +138,9 @@ export const gamifySurvey = async (
     const text = response.text;
     console.log("AI RAW RESPONSE:", text);
     if (!text || text === "[]") {
-        throw new Error("We screwed up: AI returned empty or null response. Gamification failed.");
+      throw new Error("We screwed up: AI returned empty or null response. Gamification failed.");
     }
-    
+
     const parsed = JSON.parse(text);
     return parsed as GamifiedQuestionData[];
 
