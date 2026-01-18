@@ -11,6 +11,7 @@ interface CommunityRanking {
 }
 
 interface ComparisonProps {
+  surveyId: string;
   userRankings: Record<TierLevel, TierItem[]>;
   allItems: TierItem[];
   onBack?: () => void;
@@ -25,72 +26,158 @@ const TIERS: { label: TierLevel; color: string; bg: string; border: string }[] =
   { label: 'D', color: 'text-slate-300', bg: 'bg-slate-800/30', border: 'border-slate-600/30' },
 ];
 
-// Mock community data - in real app, fetch from API
-const MOCK_COMMUNITY_RANKINGS: CommunityRanking[] = [
-  { tier: 'S', items: [{ id: 'q1_0', content: 'Item A'}], percentage: 85 },
-  { tier: 'A', items: [{ id: 'q1_1', content: 'Item B'}], percentage: 72 },
-  { tier: 'B', items: [{ id: 'q1_2', content: 'Item C'}], percentage: 45 },
-  { tier: 'C', items: [{ id: 'q1_3', content: 'Item D'}], percentage: 30 },
-  { tier: 'D', items: [{ id: 'q1_4', content: 'Item E'}], percentage: 15 },
-];
-
 export const CommunityComparison: React.FC<ComparisonProps> = ({
+  surveyId,
   userRankings,
   allItems,
   onBack,
   onShare,
 }) => {
-  const [communityData, setCommunityData] = useState<CommunityRanking[]>(MOCK_COMMUNITY_RANKINGS);
+  const [communityData, setCommunityData] = useState<CommunityRanking[]>([]);
   const [agreementScore, setAgreementScore] = useState<number>(0);
   const [surprisingItems, setSurprisingItems] = useState<{ item: TierItem, userTier: TierLevel, communityTier: TierLevel }[]>([]);
   const [perfectMatches, setPerfectMatches] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    calculateComparison();
+    const fetchConsensus = async () => {
+      try {
+        const data = await StorageService.getConsensus(surveyId);
+        setCommunityData(data);
+      } catch (err) {
+        console.error('Failed to fetch consensus:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchConsensus();
+  }, [surveyId]);
+
+  useEffect(() => {
+    if (communityData.length > 0) {
+      calculateComparison();
+    }
   }, [userRankings, communityData]);
 
+
   const calculateComparison = () => {
-    let matches = 0;
+    let weightedPoints = 0;
+    let perfectMatchCount = 0;
     let totalCompared = 0;
     const surprises: { item: TierItem, userTier: TierLevel, communityTier: TierLevel }[] = [];
+    const tierOrder: TierLevel[] = ['S', 'A', 'B', 'C', 'D'];
 
     // Compare each item
     allItems.forEach(item => {
-      const userTier = findItemTier(item.id, userRankings);
-      const communityTier = findItemTier(item.id, communityData);
+      const userTier = findItemTier(item, userRankings);
+      const communityTier = findItemTier(item, communityData);
       
       if (userTier && communityTier) {
         totalCompared++;
         
-        if (userTier === communityTier) {
-          matches++;
-        } else {
-          // Check if placement is significantly different (more than 1 tier apart)
-          const tierOrder = ['S', 'A', 'B', 'C', 'D'];
-          const userIndex = tierOrder.indexOf(userTier);
-          const communityIndex = tierOrder.indexOf(communityTier);
-          
-          if (Math.abs(userIndex - communityIndex) >= 2) {
-            surprises.push({ item, userTier, communityTier });
-          }
+        const userIndex = tierOrder.indexOf(userTier);
+        const communityIndex = tierOrder.indexOf(communityTier);
+        const distance = Math.abs(userIndex - communityIndex);
+
+        if (distance === 0) {
+          weightedPoints += 1;
+          perfectMatchCount++;
+        } else if (distance === 1) {
+          weightedPoints += 0.5; // Partial credit for being 1 tier away
+        } else if (distance >= 2) {
+          surprises.push({ item, userTier, communityTier });
         }
       }
     });
 
-    const score = totalCompared > 0 ? Math.round((matches / totalCompared) * 100) : 0;
+    const score = totalCompared > 0 ? Math.round((weightedPoints / totalCompared) * 100) : 0;
     setAgreementScore(score);
     setSurprisingItems(surprises);
-    setPerfectMatches(matches);
+    setPerfectMatches(perfectMatchCount);
   };
 
-  const findItemTier = (itemId: string, rankings: any): TierLevel | null => {
+  const findItemTier = (targetItem: TierItem, rankings: any): TierLevel | null => {
+    // Handle array structure (CommunityData)
+    if (Array.isArray(rankings)) {
+      const tierMatch = rankings.find(r => 
+        r.items.some((item: TierItem) => item.content === targetItem.content)
+      );
+      return tierMatch ? tierMatch.tier : null;
+    }
+
+    // Handle object structure (UserRankings)
     for (const tier of TIERS) {
       const tierItems = rankings[tier.label] || [];
-      if (tierItems.some((item: TierItem) => item.id === itemId)) {
+      if (tierItems.some((item: TierItem) => item.content === targetItem.content)) {
         return tier.label as TierLevel;
       }
     }
     return null;
+  };
+
+  const handleShare = async () => {
+    if (onShare) {
+      onShare();
+      return;
+    }
+
+    const text = `I just ranked items in this survey! My agreement score with the community is ${agreementScore}% with ${perfectMatches} perfect matches. Check it out!`;
+    const url = window.location.href;
+    const shareText = `${text}\n${url}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Top Tier Rankings',
+          text: shareText,
+          url,
+        });
+      } catch (err) {
+        if (err instanceof Error && err.name !== 'AbortError') {
+          console.error('Share failed', err);
+        }
+      }
+    } else {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+          await navigator.clipboard.writeText(shareText);
+          alert('Results copied to clipboard!');
+        } catch (err) {
+          console.error('Failed to copy', err);
+          fallbackCopyTextToClipboard(shareText);
+        }
+      } else {
+        fallbackCopyTextToClipboard(shareText);
+      }
+    }
+  };
+
+  const fallbackCopyTextToClipboard = (text: string) => {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    
+    // Avoid scrolling to bottom
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+    textArea.style.opacity = "0";
+
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+      const successful = document.execCommand('copy');
+      if (successful) {
+        alert('Results copied to clipboard!');
+      } else {
+        console.error('Fallback: Copying text command was unsuccessful');
+      }
+    } catch (err) {
+      console.error('Fallback: Oops, unable to copy', err);
+    }
+    
+    document.body.removeChild(textArea);
   };
 
   const getTierColor = (tier: TierLevel) => {
@@ -103,8 +190,35 @@ export const CommunityComparison: React.FC<ComparisonProps> = ({
     return tierConfig?.bg || 'bg-slate-800/20';
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      </div>
+    );
+  }
+
+  if (communityData.length === 0) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-center">
+        <Trophy size={64} className="text-slate-700 mb-6" />
+        <h2 className="text-2xl font-bold text-white mb-2">First to Rank!</h2>
+        <p className="text-slate-400 max-w-md">
+          You're the first person to complete this survey. Check back later to see how your rankings compare with others!
+        </p>
+        <button 
+          onClick={onBack}
+          className="mt-8 px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors"
+        >
+          Back to Admin
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-white p-4 md:p-6">
+
       {/* Header */}
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
@@ -117,7 +231,7 @@ export const CommunityComparison: React.FC<ComparisonProps> = ({
           </button>
           
           <button
-            onClick={onShare}
+            onClick={handleShare}
             className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
             <Share2 size={16} />
@@ -294,8 +408,8 @@ export const CommunityComparison: React.FC<ComparisonProps> = ({
                 </h3>
                 <div className="grid grid-cols-5 gap-2">
                   {allItems.map((item, index) => {
-                    const userTier = findItemTier(item.id, userRankings);
-                    const communityTier = findItemTier(item.id, communityData);
+                    const userTier = findItemTier(item, userRankings);
+                    const communityTier = findItemTier(item, communityData);
                     const isMatch = userTier === communityTier && userTier !== null;
                     
                     return (

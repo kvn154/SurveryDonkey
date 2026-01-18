@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Question, SurveyResponse, GamifiedQuestionData, ImposterGameData } from '../../types';
+import React, { useState } from 'react';
+import { Question, SurveyResponse, ImposterScenario } from '../../types';
+import { generateImposterScenario } from '../../services/geminiService';
 import { StorageService } from '../../services/storageService';
-import { Users, Eye, EyeOff, Loader2, Play, UserPlus, X, RefreshCw, Send, CheckCircle2 } from 'lucide-react';
+import { Loader2, Play, UserPlus, X, Send, CheckCircle2 } from 'lucide-react';
 
 interface Props {
   surveyId: string;
   questions: Question[];
-  gamifiedData?: GamifiedQuestionData[];
   onComplete: () => void;
 }
 
-type GamePhase = 'SETUP' | 'ROLE_REVEAL' | 'QUESTION_PHASE' | 'DASHBOARD' | 'VOTING' | 'GAME_OVER';
+type GamePhase = 'SETUP' | 'GENERATING' | 'ROLE_REVEAL' | 'QUESTION_PHASE' | 'DASHBOARD' | 'VOTING' | 'GAME_OVER';
 
 interface Player {
   id: string;
@@ -18,56 +18,26 @@ interface Player {
   isImposter: boolean;
 }
 
-export const ImposterGame: React.FC<Props> = ({ surveyId, questions, gamifiedData, onComplete }) => {
+export const ImposterGame: React.FC<Props> = ({ surveyId, questions, onComplete }) => {
   // Game State
   const [phase, setPhase] = useState<GamePhase>('SETUP');
   const [players, setPlayers] = useState<Player[]>([]);
   const [newPlayerName, setNewPlayerName] = useState('');
   
-  // Flattened Imposter Data for Gameplay
-  const [gameScenario, setGameScenario] = useState<{
-    secretWord: string;
-    questions: {
-      text: string;
-      type: 'text' | 'scale' | 'multiple_choice';
-      options: string[] | null;
-      originalQ?: string;
-    }[]
-  } | null>(null);
+  // Scenario Data
+  const [scenario, setScenario] = useState<ImposterScenario | null>(null);
   
   // Gameplay State
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [showRole, setShowRole] = useState(false);
+  
+  // Responses
+  // Structure: { [questionIndex]: { [playerId]: answer } }
   const [roundAnswers, setRoundAnswers] = useState<Record<number, Record<string, string>>>({});
-  const [answerText, setAnswerText] = useState('');
+  const [startTime, setStartTime] = useState(0);
 
-  // Prepare Data on Mount
-  useEffect(() => {
-    if (gamifiedData) {
-      // 1. Find a secret word (Use the first applicable one found)
-      const validGame = gamifiedData.find(g => g.games.imposter_spyfall.applicable);
-      if (validGame) {
-        const imposterData = validGame.games.imposter_spyfall;
-        
-        // 2. Aggregate questions from ALL applicable parts
-        const aggregatedQuestions = gamifiedData
-          .filter(g => g.games.imposter_spyfall.applicable)
-          .flatMap(g => g.games.imposter_spyfall.derived_questions.map(dq => ({
-             text: dq.question,
-             type: dq.type,
-             options: dq.choices_scales,
-             originalQ: g.original_question
-          })));
-
-        // Shuffle questions or pick first N
-        setGameScenario({
-          secretWord: imposterData.secret_word,
-          questions: aggregatedQuestions.slice(0, 8) // Limit to 8 questions for game length
-        });
-      }
-    }
-  }, [gamifiedData]);
+  // --- SETUP HELPERS ---
 
   const addPlayer = () => {
     if (!newPlayerName.trim()) return;
@@ -85,10 +55,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, questions, gamifiedDat
       return;
     }
     
-    if(!gameScenario) {
-      alert("Game data not ready. Did you run 'AI Gamify' in the dashboard?");
-      return;
-    }
+    setPhase('GENERATING');
     
     // Assign Imposter
     const imposterIdx = Math.floor(Math.random() * players.length);
@@ -97,15 +64,28 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, questions, gamifiedDat
       isImposter: idx === imposterIdx
     }));
     setPlayers(assignedPlayers);
-    setPhase('ROLE_REVEAL');
-    setCurrentPlayerIndex(0);
+
+    try {
+      const data = await generateImposterScenario(questions);
+      setScenario(data);
+      setStartTime(Date.now());
+      setPhase('ROLE_REVEAL');
+      setCurrentPlayerIndex(0);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to generate game. Check API Key.");
+      setPhase('SETUP');
+    }
   };
+
+  // --- GAMEPLAY HELPERS ---
 
   const handleNextReveal = () => {
     setShowRole(false);
     if (currentPlayerIndex < players.length - 1) {
       setCurrentPlayerIndex(prev => prev + 1);
     } else {
+      // All revealed, start questions
       setPhase('QUESTION_PHASE');
       setCurrentPlayerIndex(0);
       setCurrentQuestionIdx(0);
@@ -113,6 +93,8 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, questions, gamifiedDat
   };
 
   const submitAnswer = (answer: string) => {
+    // 1. Save answer for this round/question
+    const currentQ = scenario!.gameQuestions[currentQuestionIdx];
     const player = players[currentPlayerIndex];
 
     setRoundAnswers(prev => ({
@@ -122,19 +104,26 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, questions, gamifiedDat
         [player.id]: answer
       }
     }));
-    
-    setAnswerText(''); // Clear input for next player
 
+    // 2. If it's a real survey question (not filler) and player is NOT imposter, aggregate data
+    if (!currentQ.isFiller && currentQ.originalId && !player.isImposter) {
+       // We can store each valid answer. For survey analytics, we might want one entry per game?
+       // Or simpler: we construct SurveyResponse objects at the END of the game for each non-imposter player.
+       // Let's just store it in memory for now.
+    }
+
+    // 3. Move to next player or End Round
     if (currentPlayerIndex < players.length - 1) {
       setCurrentPlayerIndex(prev => prev + 1);
     } else {
+      // End of this question round
       setPhase('DASHBOARD');
     }
   };
 
   const handleNextRound = () => {
-    if (!gameScenario) return;
-    if (currentQuestionIdx < gameScenario.questions.length - 1) {
+    if (!scenario) return;
+    if (currentQuestionIdx < scenario.gameQuestions.length - 1) {
       setCurrentQuestionIdx(prev => prev + 1);
       setCurrentPlayerIndex(0);
       setPhase('QUESTION_PHASE');
@@ -144,33 +133,36 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, questions, gamifiedDat
   };
 
   const handleVote = () => {
+    // Simple mock voting: everyone votes for who they suspect? 
+    // Since it's one device, we just reveal the truth after a discussion.
+    // But let's add a "Reveal Truth" button to VOTING phase.
+    
     // Save Data for all NON-IMPOSTERS
-    const responsesToSave: SurveyResponse[] = [];
-    const timestamp = Date.now();
+    const responsesToSave: Omit<SurveyResponse, 'id' | 'timestamp'>[] = [];
+    const duration = (Date.now() - startTime) / 1000;
 
     players.forEach(p => {
       if (p.isImposter) return;
 
-      const playerAnswers: Record<string, any> = {};
+      const playerAnswers: Record<string, unknown> = {};
       
-      gameScenario?.questions.forEach((q, qIdx) => {
+      // Iterate through all rounds to find answers by this player
+      scenario?.gameQuestions.forEach((q, qIdx) => {
+        if (!q.isFiller && q.originalId) {
           const ans = roundAnswers[qIdx]?.[p.id];
-          // We save the gamified question text as the key for now, 
-          // or map back to originalQ if strict analytics needed.
           if (ans) {
-            playerAnswers[q.originalQ || q.text] = ans;
+            playerAnswers[q.originalId] = ans;
           }
+        }
       });
 
       if (Object.keys(playerAnswers).length > 0) {
         responsesToSave.push({
-          id: crypto.randomUUID(),
           surveyId,
           gamePlayed: 'IMPOSTER',
-          timestamp,
           answers: playerAnswers,
           metadata: {
-            duration: 0, 
+            duration, 
             playerType: 'REAL',
             isImposter: false
           }
@@ -178,8 +170,11 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, questions, gamifiedDat
       }
     });
 
-    responsesToSave.forEach(r => StorageService.saveResponse(r));
-    setPhase('GAME_OVER');
+    Promise.all(responsesToSave.map(r => StorageService.saveResponse(r)))
+      .catch(err => console.error("Batch save failed", err))
+      .finally(() => {
+        setPhase('GAME_OVER');
+      });
   };
 
   // --- RENDERERS ---
@@ -190,12 +185,6 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, questions, gamifiedDat
         <h1 className="text-4xl font-black text-brand-900 mb-2">The Imposter</h1>
         <p className="text-slate-500 mb-8">Gather everyone around this device.</p>
         
-        {!gameScenario && (
-           <div className="mb-6 bg-red-50 text-red-600 p-4 rounded-lg text-sm">
-             Warning: This survey hasn't been gamified yet. Go back to Admin and click "AI Gamify".
-           </div>
-        )}
-
         <div className="mb-8">
            <label className="block text-sm font-bold text-slate-700 mb-2">Add Players</label>
            <div className="flex gap-2">
@@ -204,31 +193,45 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, questions, gamifiedDat
                 value={newPlayerName}
                 onChange={e => setNewPlayerName(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && addPlayer()}
-                className="flex-1 border border-slate-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand-500 outline-none bg-white text-slate-900"
+                className="flex-1 border border-slate-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand-500 outline-none"
                 placeholder="Enter name..."
              />
-             <button onClick={addPlayer} className="bg-brand-600 text-white px-6 rounded-lg hover:bg-brand-700">
-               <UserPlus />
-             </button>
+              <button onClick={addPlayer} className="bg-brand-600 text-white px-6 rounded-lg hover:bg-brand-700 cursor-pointer active:scale-95 transition-transform">
+                <UserPlus />
+              </button>
+
            </div>
         </div>
 
         <div className="flex flex-wrap gap-3 mb-8 min-h-[100px] bg-slate-50 p-4 rounded-xl">
            {players.map(p => (
-             <div key={p.id} className="bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200 flex items-center gap-2">
-               <span className="font-bold text-slate-700">{p.name}</span>
-               <button onClick={() => removePlayer(p.id)} className="text-slate-400 hover:text-red-500"><X size={14}/></button>
-             </div>
+              <div key={p.id} className="bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200 flex items-center gap-2">
+                <span className="font-bold text-slate-700">{p.name}</span>
+                <button onClick={() => removePlayer(p.id)} className="text-slate-400 hover:text-red-500 cursor-pointer transition-colors"><X size={14}/></button>
+              </div>
+
            ))}
+           {players.length === 0 && <span className="text-slate-400 italic">No players added yet.</span>}
         </div>
 
-        <button 
-          onClick={startGame}
-          disabled={players.length < 3 || !gameScenario}
-          className="w-full bg-brand-900 text-white py-4 rounded-xl font-bold text-xl disabled:opacity-50 hover:bg-brand-800 transition-colors flex items-center justify-center gap-2"
-        >
-          <Play fill="currentColor" /> Start Mission
-        </button>
+         <button 
+           onClick={startGame}
+           disabled={players.length < 3}
+           className="w-full bg-brand-900 text-white py-4 rounded-xl font-bold text-xl disabled:opacity-50 hover:bg-brand-800 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
+         >
+           <Play fill="currentColor" /> Start Mission
+         </button>
+
+      </div>
+    );
+  }
+
+  if (phase === 'GENERATING') {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-slate-50">
+         <Loader2 className="animate-spin text-brand-600 mb-4" size={64} />
+         <h2 className="text-2xl font-bold text-slate-800">Compiling Mission Data...</h2>
+         <p className="text-slate-500 mt-2">AI is generating a secret scenario.</p>
       </div>
     );
   }
@@ -246,12 +249,13 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, questions, gamifiedDat
              <h2 className="text-3xl font-bold text-slate-800 mb-2">Pass device to</h2>
              <h1 className="text-5xl font-black text-brand-600 mb-8">{player.name}</h1>
              <p className="text-slate-400 mb-8">Tap below to reveal your secret identity. Make sure no one else is looking.</p>
-             <button 
-               onClick={() => setShowRole(true)}
-               className="w-full bg-slate-800 text-white py-4 rounded-xl font-bold text-lg hover:bg-slate-900 shadow-lg"
-             >
-               Reveal Identity
-             </button>
+              <button 
+                onClick={() => setShowRole(true)}
+                className="w-full bg-slate-800 text-white py-4 rounded-xl font-bold text-lg hover:bg-slate-900 shadow-lg cursor-pointer active:scale-95 transition-transform"
+              >
+                Reveal Identity
+              </button>
+
            </>
          ) : (
            <div className="animate-in zoom-in duration-300">
@@ -266,25 +270,26 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, questions, gamifiedDat
                    <h1 className="text-4xl font-black text-green-600 mb-2">CREWMATE</h1>
                    <p className="text-green-800 font-medium mb-2">Secret Word:</p>
                    <div className="bg-white px-4 py-2 rounded-lg font-mono text-2xl border border-green-200 shadow-inner">
-                     {gameScenario?.secretWord}
+                     {scenario?.secretWord}
                    </div>
                 </div>
              )}
-             <button 
-               onClick={handleNextReveal}
-               className="w-full bg-brand-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-brand-700 shadow-lg"
-             >
-               Got it
-             </button>
+              <button 
+                onClick={handleNextReveal}
+                className="w-full bg-brand-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-brand-700 shadow-lg cursor-pointer active:scale-95 transition-transform"
+              >
+                Got it
+              </button>
+
            </div>
          )}
       </div>
     );
   }
 
-  if (phase === 'QUESTION_PHASE' && gameScenario) {
+  if (phase === 'QUESTION_PHASE' && scenario) {
     const player = players[currentPlayerIndex];
-    const q = gameScenario.questions[currentQuestionIdx];
+    const q = scenario.gameQuestions[currentQuestionIdx];
     
     return (
       <div className="max-w-2xl mx-auto p-6 mt-10">
@@ -301,7 +306,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, questions, gamifiedDat
                  </div>
               </div>
               <div className="text-right">
-                <span className="font-mono text-brand-400">Q{currentQuestionIdx + 1}/{gameScenario.questions.length}</span>
+                <span className="font-mono text-brand-400">Q{currentQuestionIdx + 1}/{scenario.gameQuestions.length}</span>
               </div>
            </div>
 
@@ -311,60 +316,17 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, questions, gamifiedDat
                 {q.text}
               </h2>
 
-              {q.type === 'scale' && q.options ? (
-                 <div className="mt-8">
-                    <div className="relative mb-12 px-2">
-                         {/* Line */}
-                         <div className="absolute left-4 right-4 top-6 h-1 bg-slate-100 rounded-full z-0"></div>
-                         
-                         <div className="flex justify-between relative z-10">
-                            {q.options.map((opt, i) => {
-                                const isSelected = answerText === opt;
-                                return (
-                                    <button 
-                                      key={i} 
-                                      onClick={() => setAnswerText(opt)}
-                                      className="group flex flex-col items-center focus:outline-none flex-1" 
-                                    >
-                                        <div className={`
-                                            w-12 h-12 rounded-full flex items-center justify-center border-4 transition-all duration-200 bg-white
-                                            ${isSelected 
-                                                ? 'border-brand-500 text-brand-600 shadow-lg scale-110 ring-4 ring-brand-100' 
-                                                : 'border-slate-200 text-slate-400 group-hover:border-brand-200'
-                                            }
-                                        `}>
-                                            {isSelected ? <CheckCircle2 size={24} fill="currentColor" className="text-white" /> : <span className="font-bold text-lg">{i + 1}</span>}
-                                        </div>
-                                        <div className={`mt-3 text-xs font-bold text-center leading-tight transition-colors px-1 ${isSelected ? 'text-brand-700' : 'text-slate-400'}`}>
-                                            {opt}
-                                        </div>
-                                    </button>
-                                )
-                            })}
-                         </div>
-                    </div>
-                    
-                    <button 
-                        onClick={() => submitAnswer(answerText)}
-                        disabled={!answerText}
-                        className="w-full bg-brand-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-brand-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-900/10"
-                    >
-                        Confirm Selection <Send size={18} />
-                    </button>
-                 </div>
-              ) : q.options && q.options.length > 0 ? (
+              {q.options && q.options.length > 0 ? (
                 <div className="grid grid-cols-1 gap-3">
                    {q.options.map((opt, i) => (
-                     <button 
-                       key={i}
-                       onClick={() => submitAnswer(opt)}
-                       className="p-4 text-left border-2 border-slate-100 rounded-xl hover:border-brand-500 hover:bg-brand-50 transition-all font-medium text-slate-700 group flex items-center justify-between"
-                     >
-                       {opt}
-                       <div className="w-6 h-6 rounded-full border-2 border-slate-200 group-hover:border-brand-500 flex items-center justify-center">
-                          <div className="w-2.5 h-2.5 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                       </div>
-                     </button>
+                      <button 
+                        key={i}
+                        onClick={() => submitAnswer(opt)}
+                        className="p-4 text-left border-2 border-slate-100 rounded-xl hover:border-brand-500 hover:bg-brand-50 transition-all font-medium text-slate-700 cursor-pointer active:scale-[0.99]"
+                      >
+                        {opt}
+                      </button>
+
                    ))}
                 </div>
               ) : (
@@ -372,23 +334,22 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, questions, gamifiedDat
                    <input 
                      type="text"
                      placeholder="Type your answer..."
-                     value={answerText}
-                     onChange={(e) => setAnswerText(e.target.value)}
-                     className="flex-1 border-2 border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none bg-white text-slate-900"
+                     className="flex-1 border-2 border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none"
                      onKeyDown={(e) => {
-                       if(e.key === 'Enter' && answerText.trim()) submitAnswer(answerText);
+                       if(e.key === 'Enter') submitAnswer((e.target as HTMLInputElement).value);
                      }}
                      id="text-answer-input"
                    />
-                   <button 
-                     onClick={() => {
-                        if(answerText.trim()) submitAnswer(answerText);
-                     }}
-                     disabled={!answerText.trim()}
-                     className="bg-brand-600 text-white px-6 rounded-xl hover:bg-brand-700 disabled:opacity-50"
-                   >
-                     <Send size={20} />
-                   </button>
+                    <button 
+                      onClick={() => {
+                         const val = (document.getElementById('text-answer-input') as HTMLInputElement).value;
+                         if(val) submitAnswer(val);
+                      }}
+                      className="bg-brand-600 text-white px-6 rounded-xl hover:bg-brand-700 cursor-pointer active:scale-95 transition-transform"
+                    >
+                      <Send size={20} />
+                    </button>
+
                 </div>
               )}
            </div>
@@ -399,7 +360,7 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, questions, gamifiedDat
   }
 
   if (phase === 'DASHBOARD') {
-    const q = gameScenario!.questions[currentQuestionIdx];
+    const q = scenario!.gameQuestions[currentQuestionIdx];
     return (
       <div className="max-w-4xl mx-auto p-6 mt-6">
         <h1 className="text-3xl font-black text-slate-800 mb-2">Round Recap</h1>
@@ -425,12 +386,13 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, questions, gamifiedDat
            </div>
         </div>
 
-        <button 
-          onClick={handleNextRound}
-          className="w-full bg-black text-white py-4 rounded-xl font-bold text-xl hover:bg-slate-800 shadow-lg flex items-center justify-center gap-2"
-        >
-          {currentQuestionIdx < gameScenario!.questions.length - 1 ? 'Next Question' : 'Proceed to Voting'} <Play size={20} fill="currentColor"/>
-        </button>
+         <button 
+           onClick={handleNextRound}
+           className="w-full bg-black text-white py-4 rounded-xl font-bold text-xl hover:bg-slate-800 shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-all"
+         >
+           {currentQuestionIdx < scenario!.gameQuestions.length - 1 ? 'Next Question' : 'Proceed to Voting'} <Play size={20} fill="currentColor"/>
+         </button>
+
       </div>
     );
   }
@@ -452,12 +414,14 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, questions, gamifiedDat
             ))}
          </div>
 
-         <button 
-           onClick={() => handleVote()}
-           className="bg-red-600 text-white px-12 py-4 rounded-full font-bold text-2xl hover:bg-red-700 shadow-xl transition-transform hover:scale-105"
-         >
-           Reveal Truth
-         </button>
+           <button 
+             onClick={() => handleVote()}
+             className="bg-red-600 text-white px-12 py-4 rounded-full font-bold text-2xl hover:bg-red-700 shadow-xl transition-all hover:scale-105 cursor-pointer active:scale-95"
+           >
+ 
+            Reveal Truth
+          </button>
+
       </div>
     );
   }
@@ -475,16 +439,18 @@ export const ImposterGame: React.FC<Props> = ({ surveyId, questions, gamifiedDat
          <div className="bg-brand-50 p-8 rounded-2xl border border-brand-100 mb-8">
             <h3 className="text-brand-900 font-bold text-xl mb-2">Mission Debrief</h3>
             <p className="text-brand-700">
-               Secret Word: <span className="font-bold">{gameScenario?.secretWord}</span>
+               Topic: <span className="font-bold">{scenario?.topic}</span> <br/>
+               Secret Word: <span className="font-bold">{scenario?.secretWord}</span>
             </p>
             <div className="mt-4 flex items-center justify-center gap-2 text-green-700 font-medium">
                <CheckCircle2 /> Survey data securely uploaded from all crewmates.
             </div>
          </div>
 
-         <button onClick={onComplete} className="text-slate-500 hover:text-slate-800 underline">
-            Return to Dashboard
-         </button>
+          <button onClick={onComplete} className="text-slate-500 hover:text-slate-800 underline cursor-pointer transition-colors">
+             Return to Dashboard
+          </button>
+
       </div>
     );
   }

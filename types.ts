@@ -1,86 +1,80 @@
-export enum QuestionType {
-  OPEN_ENDED = 'OPEN_ENDED',
-  SINGLE_CHOICE = 'SINGLE_CHOICE',
-  RANKING = 'RANKING',
-  LIKERT = 'LIKERT'
-}
+import { type } from "arktype";
+import { selectSurveySchema, selectQuestionSchema, selectResponseSchema } from "./db/schema";
 
-export interface Question {
-  id: string;
-  text: string;
-  type: QuestionType;
-  options?: string[]; // For Single Choice or Ranking items
-  assignedGame?: 'TOP_TIER' | 'IMPOSTER' | 'BOTH';
-}
+export const QuestionType = type("'OPEN_ENDED' | 'SINGLE_CHOICE' | 'RANKING' | 'LIKERT'");
 
-// --- NEW GAMIFICATION TYPES ---
+export const Question = selectQuestionSchema;
+export type Question = typeof Question.infer;
 
-export interface TopTierGameData {
-  applicable: boolean;
-  concepts: string[];
-  derived_questions: string[];
-}
+export const Survey = selectSurveySchema.and({
+  questions: Question.array(),
+  createdAt: "string | Date | number",
+});
+export type Survey = typeof Survey.infer;
 
-export interface ImposterQuestion {
-  question: string;
-  type: 'text' | 'scale' | 'multiple_choice';
-  choices_scales: string[] | null;
-}
+export const SurveyResponse = selectResponseSchema.and({
+  timestamp: "string | Date | number",
+});
+export type SurveyResponse = typeof SurveyResponse.infer;
 
-export interface ImposterGameData {
-  applicable: boolean;
-  secret_word: string;
-  derived_questions: ImposterQuestion[];
-}
+export const SurveyUpsert = type({
+  title: "string",
+  questions: type({
+    "id?": "string",
+    text: "string",
+    type: "'OPEN_ENDED' | 'SINGLE_CHOICE' | 'RANKING' | 'LIKERT'",
+    "options?": "string[]",
+    "assignedGame?": "'TOP_TIER' | 'IMPOSTER' | 'BOTH'",
+  }).array(),
+});
+export type SurveyUpsert = typeof SurveyUpsert.infer;
 
-export interface GamifiedQuestionData {
-  original_question: string;
-  games: {
-    top_tier_rank: TopTierGameData;
-    imposter_spyfall: ImposterGameData;
-  };
-}
-
-export interface Survey {
-  id: string;
-  title: string;
-  questions: Question[];
-  createdAt: number;
-  // New field to store the AI generated config
-  gamifiedData?: GamifiedQuestionData[]; 
-}
-
-export interface SurveyResponse {
-  id: string;
-  surveyId: string;
-  gamePlayed: 'TOP_TIER' | 'IMPOSTER';
-  timestamp: number;
-  answers: Record<string, any>; // questionId -> answer
+export const ResponseInsert = type({
+  surveyId: "string",
+  gamePlayed: "'TOP_TIER' | 'IMPOSTER'",
+  answers: "Record<string, unknown>",
   metadata: {
-    duration: number;
-    playerType: 'REAL' | 'BOT'; // For Imposter game
-    isImposter?: boolean;
-    confidenceScore?: number;
-  };
-}
+    duration: "number",
+    playerType: "'REAL' | 'BOT'",
+    "isImposter?": "boolean",
+    "confidenceScore?": "number",
+  },
+});
+export type ResponseInsert = typeof ResponseInsert.infer;
 
-export interface TierItem {
-  id: string;
-  content: string;
-}
+export const TierItem = type({
+  id: "string",
+  content: "string",
+});
+export type TierItem = typeof TierItem.infer;
 
-export type TierLevel = 'S' | 'A' | 'B' | 'C' | 'D';
+export const TierLevel = type("'S' | 'A' | 'B' | 'C' | 'D'");
+export type TierLevel = typeof TierLevel.infer;
 
-export interface ImposterGameSession {
-  topic: string;
-  secretWord: string;
-  isUserImposter: boolean;
-  round: number;
-  players: { id: string; name: string; isBot: boolean }[];
-  questions: {
-    originalQuestionId?: string;
-    gameText: string;
-    isFiller: boolean;
-    options: string[];
-  }[];
-}
+export const ImposterScenario = type({
+  topic: "string",
+  secretWord: "string",
+  gameQuestions: type({
+    "originalId?": "string",
+    text: "string",
+    options: "string[]",
+    isFiller: "boolean",
+  }).array(),
+});
+export type ImposterScenario = typeof ImposterScenario.infer;
+
+export const ImposterGameSession = type({
+  topic: "string",
+  secretWord: "string",
+  isUserImposter: "boolean",
+  round: "number",
+  players: type({ id: "string", name: "string", isBot: "boolean" }).array(),
+  questions: type({
+    "originalQuestionId?": "string",
+    gameText: "string",
+    isFiller: "boolean",
+    options: "string[]",
+  }).array(),
+});
+
+export type ImposterGameSession = typeof ImposterGameSession.infer;

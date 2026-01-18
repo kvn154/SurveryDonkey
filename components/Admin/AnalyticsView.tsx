@@ -9,6 +9,13 @@ interface Props {
 
 const COLORS = ['#0d9488', '#f59e0b', '#8b5cf6', '#ec4899', '#3b82f6'];
 
+interface QuestionStat {
+  id: string;
+  text: string;
+  type: 'RANKING' | 'CHOICE';
+  data: { name: string; value?: number; score?: number }[];
+}
+
 export const AnalyticsView: React.FC<Props> = ({ survey, responses }) => {
   
   const stats = useMemo(() => {
@@ -19,7 +26,7 @@ export const AnalyticsView: React.FC<Props> = ({ survey, responses }) => {
     ];
 
     // 2. Process Question Results
-    const questionStats: any[] = [];
+    const questionStats: QuestionStat[] = [];
     
     survey.questions.forEach(q => {
       if (q.type === 'RANKING') {
@@ -31,18 +38,21 @@ export const AnalyticsView: React.FC<Props> = ({ survey, responses }) => {
         
         relevantResponses.forEach(r => {
            const ans = r.answers[q.id]; // { S: [], A: []...}
-           if(!ans) return;
-           Object.entries(ans).forEach(([tier, items]: [string, any]) => {
+           if(!ans || typeof ans !== 'object' || Array.isArray(ans)) return;
+           
+           Object.entries(ans).forEach(([tier, items]) => {
               const points = tier === 'S' ? 5 : tier === 'A' ? 4 : tier === 'B' ? 3 : tier === 'C' ? 2 : 1;
-              (items as string[]).forEach(item => {
-                 if(scores[item] !== undefined) scores[item] += points;
-              });
+              if (items && Array.isArray(items)) {
+                items.forEach(item => {
+                   if(item && typeof item === 'string' && scores[item] !== undefined) scores[item] += points;
+                });
+              }
            });
         });
 
         const data = Object.entries(scores)
           .map(([name, score]) => ({ name, score }))
-          .sort((a,b) => b.score - a.score);
+          .sort((a,b) => (b.score || 0) - (a.score || 0));
           
         questionStats.push({ id: q.id, text: q.text, type: 'RANKING', data });
       } 
@@ -51,7 +61,7 @@ export const AnalyticsView: React.FC<Props> = ({ survey, responses }) => {
         q.options?.forEach(opt => counts[opt] = 0);
         
         responses.filter(r => r.answers[q.id]).forEach(r => {
-           const val = r.answers[q.id];
+           const val = r.answers[q.id] as string;
            if(counts[val] !== undefined) counts[val]++;
         });
         
@@ -96,8 +106,8 @@ export const AnalyticsView: React.FC<Props> = ({ survey, responses }) => {
                       <XAxis dataKey="name" fontSize={12} tickLine={false} />
                       <YAxis />
                       <Tooltip />
-                      <Bar dataKey="score" fill="#8884d8">
-                        {qs.data.map((entry: any, index: number) => (
+                       <Bar dataKey="score" fill="#8884d8">
+                        {qs.data.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Bar>
@@ -111,15 +121,16 @@ export const AnalyticsView: React.FC<Props> = ({ survey, responses }) => {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) => `${name || 'Unknown'} ${((percent ?? 0) * 100).toFixed(0)}%`}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
                       >
-                        {qs.data.map((entry: any, index: number) => (
+                        {qs.data.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
+
                       <Tooltip />
                     </PieChart>
                  </ResponsiveContainer>
